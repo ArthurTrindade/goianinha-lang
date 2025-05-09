@@ -1,0 +1,8 @@
+int soma(int a, int b) {
+    retorne a + b;
+}
+
+programa {
+    escreva "Resultado:";
+    escreva soma(1, 2);
+}
