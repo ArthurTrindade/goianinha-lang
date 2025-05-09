@@ -1,4 +1,5 @@
 goianinha
+main
 src/lex.yy.c
 src/goianinha.tab.h
 src/goianinha.tab.c
