@@ -2,4 +2,4 @@ goianinha
 src/lex.yy.c
 src/goianinha.tab.h
 src/goianinha.tab.c
-build/*
+build/
