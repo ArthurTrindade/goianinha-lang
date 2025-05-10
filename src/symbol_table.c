@@ -12,9 +12,31 @@ env_t env_new() {
 
 void env_free(env_t e) { list_destroy(e); }
 
-int env_add(env_t e, struct hashmap *h) { return list_insert_begin(e, h); }
+int env_add(env_t e, scope_t h) { return list_insert_begin(e, h); }
 
 int env_delete(env_t e) { return list_remove_begin(e); }
+
+scope_t symboltable_new() {
+  return hashmap_new(sizeof(symbol_t), 0, 0, 0, symbol_hash, symbol_compare,
+                     NULL, NULL);
+}
+
+void symboltable_set(scope_t h, symbol_t *s) { hashmap_set(h, s); }
+
+symbol_t *symboltable_get(scope_t h, const void *key) {
+  return (symbol_t *)hashmap_get(h, key);
+}
+
+symbol_t *symbol_new(char *lexeme, token_t token) {
+  symbol_t *s = (symbol_t *)malloc(sizeof(symbol_t));
+  if (s != NULL) {
+    s->lexeme = lexeme;
+    s->type = token;
+  }
+  return s;
+}
+
+void symbol_free(symbol_t *s) { free(s); }
 
 int symbol_compare(const void *s1, const void *s2, void *udata) {
   symbol_t *us1 = (symbol_t *)s1;
@@ -25,17 +47,6 @@ int symbol_compare(const void *s1, const void *s2, void *udata) {
 uint64_t symbol_hash(const void *item, uint64_t seed0, uint64_t seed1) {
   const symbol_t *symbol = item;
   return hashmap_sip(symbol->lexeme, strlen(symbol->lexeme), seed0, seed1);
-}
-
-struct hashmap *symboltable_new() {
-  return hashmap_new(sizeof(symbol_t), 0, 0, 0, symbol_hash, symbol_compare,
-                     NULL, NULL);
-}
-
-void symboltable_set(struct hashmap *h, symbol_t *s) { hashmap_set(h, s); }
-
-symbol_t *symboltable_get(struct hashmap *h, const void *key) {
-  return (symbol_t *)hashmap_get(h, key);
 }
 
 symbol_t *symbol_search(env_t env, char *lexeme) {
@@ -63,8 +74,8 @@ int main() {
 
   env_t env = env_new();
 
-  struct hashmap *scope1 = symboltable_new();
-  struct hashmap *scope2 = symboltable_new();
+  scope_t scope1 = symboltable_new();
+  scope_t scope2 = symboltable_new();
   env_add(env, scope1);
   env_add(env, scope2);
 
