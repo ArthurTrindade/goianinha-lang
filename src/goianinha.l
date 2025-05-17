@@ -49,7 +49,17 @@ DIGIT   [0-9]+
 \"([^\\\n"]|\\.)*\"      { return STRING; }
 
 {ID}     { return check_keyword(yytext); }
-{DIGIT}  { return INTCONST; }
+
+{DIGIT}  {
+            yylval.lexeme = (char*)malloc(sizeof(yytext)+1);
+            if (yylval.lexeme) {
+                strcpy(yylval.lexeme, yytext);
+                return INTCONST;
+            }
+            printf("Erro de memória\n");
+            exit(1);
+         }
+
 \'[^']\' { return CARCONST; }
 "+"      { return PLUS; }
 "-"      { return MINUS; }

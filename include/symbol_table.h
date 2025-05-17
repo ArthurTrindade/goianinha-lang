@@ -12,7 +12,11 @@ typedef struct hashmap *scope_t;
 
 typedef struct symbol_ {
   char *lexeme;
-  token_t type;
+  token_t symbol_type;
+  token_t data_type;
+  int pos;
+  int line;
+  scope_t func;
 } symbol_t;
 
 /*
@@ -67,6 +71,13 @@ symbol_t *symboltable_get(scope_t h, const void *key);
  * tabela de símbolos
  * */
 symbol_t *symbol_search(env_t env, char *lexeme);
+
+symbol_t *symbol_var(char *l, token_t dt, int pos, int line);
+
+symbol_t *symbol_param(char *l, token_t dt, int pos, scope_t func, int line);
+
+symbol_t *symbol_function(char *l, token_t return_type, int num_param,
+                          int line);
 
 /*
  * Imprime as informações do símbolo na saída padrão

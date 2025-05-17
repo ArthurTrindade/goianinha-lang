@@ -2,19 +2,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "../include/ast.h"
+#include "../include/symbol_table.h"
+
 extern int yylex();
 extern int yyparse();
 extern FILE *yyin;
 extern char *yytext;
 extern int yylineno;
 
+ast_t root;
+
 void yyerror(const char *s);
 %}
 
-%require "3.8.2"
+
+%union {
+  int line;
+  char *lexeme;
+  symbol_t* ast;
+}
 
 /* declarações de símbolos terminais */
-%token IDENTIFIER STRING
+%token <lexeme> IDENTIFIER STRING
 %token NUMBER
 %token PLUS MINUS COMMA SEMICOLON PROGRAMA LEFT_PAREN RIGHT_PAREN LEFT_BRACE RIGHT_BRACE
 %token RETORNE LEIA ESCREVA ENQUANTO SENAO ENTAO EXECUTE 
@@ -24,11 +34,14 @@ void yyerror(const char *s);
 
 /* declarações de símbolos não-terminal inicial */
 %start Programa
+%type <ast> DeclFuncVar DeclProg DeclVar DeclFunc ListaParametros ListaParametrosCont
+%type Bloco ListaDeclVar Tipo ListaComando Comando Expr OrExpr AndExpr EqExpr DesigExpr
+%type AddExpr MulExpr UnExpr PrimExpr ListExpr
 
 /* regras gramaticais */
 %%
 Programa:
-        DeclFuncVar DeclProg
+        DeclFuncVar DeclProg { root = $1; }
         ;
 
 DeclFuncVar:
@@ -159,20 +172,23 @@ void yyerror(const char *s) {
     fprintf(stderr, "Erro de sintaxe: %s, na linha '%d'\n", s, yylineno);
 }
 
-// int main(int argc, char **argv) {
-//     if (argc > 1) {
-//         FILE *input = fopen(argv[1], "r");
-//         if (!input) {
-//             fprintf(stderr, "Não foi possível abrir %s\n", argv[1]);
-//             return 1;
-//         }
-//         yyin = input;
-//     }
-//     
-//     printf("Teste código correto\n");
-//     int res = yyparse();
-//     printf("%d\n", res);
-//     
-//     return 0;
-// }
+int main(int argc, char **argv) {
+    if (argc > 1) {
+        FILE *input = fopen(argv[1], "r");
+        if (!input) {
+            fprintf(stderr, "Não foi possível abrir %s\n", argv[1]);
+            return 1;
+        }
+        yyin = input;
+    }
+    
+    printf("Teste código correto: ");
+    int res = yyparse();
+    printf("%d\n", res);
+    
+    // printf("%s\n", root->symbol->lexeme);
+    // ast_travel(root);
+
+    return 0;
+}
 

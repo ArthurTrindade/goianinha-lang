@@ -1,6 +1,7 @@
 int x,y,z,v;
+
 programa {
-    int x
+    int x;
     escreva x; escreva "arthur"; escreva y; escreva " "; escreva z;
     escreva "asdf"; 
 }

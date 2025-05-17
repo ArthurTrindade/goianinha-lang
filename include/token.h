@@ -14,45 +14,50 @@
 typedef enum token_ {
 
   /* Identificadores e literais */
-  IDENTIFIER = 258, /* Identificador (nome de variável/função) */
-  NUMBER,           /* Literal numérico */
-  STRING,           /* Literal string (entre aspas) */
+  T_IDENTIFIER = 258, /* Identificador (nome de variável/função) */
+  T_NUMBER,           /* Literal numérico */
+  T_STRING,           /* Literal string (entre aspas) */
+
+  /* Tipos */
+  T_VAR,
+  T_FUNCTION,
+  T_PARAM,
 
   /* Operadores */
-  PLUS,          /* + */
-  MINUS,         /* - */
-  STAR,          /* * */
-  SLASH,         /* / */
-  EQUAL,         /* = */
-  EQUAL_EQUAL,   /* == */
-  BANG,          /* ! */
-  BANG_EQUAL,    /* != */
-  LESS,          /* < */
-  LESS_EQUAL,    /* <= */
-  GREATER,       /* > */
-  GREATER_EQUAL, /* >= */
+  T_PLUS,          /* + */
+  T_MINUS,         /* - */
+  T_STAR,          /* * */
+  T_SLASH,         /* / */
+  T_EQUAL,         /* = */
+  T_EQUAL_EQUAL,   /* == */
+  T_BANG,          /* ! */
+  T_BANG_EQUAL,    /* != */
+  T_LESS,          /* < */
+  T_LESS_EQUAL,    /* <= */
+  T_GREATER,       /* > */
+  T_GREATER_EQUAL, /* >= */
 
   /* Delimitadores */
-  LEFT_PAREN,  /* ( */
-  RIGHT_PAREN, /* ) */
-  LEFT_BRACE,  /* { */
-  RIGHT_BRACE, /* } */
-  SEMICOLON,   /* ; */
-  COMMA,       /* , */
+  T_LEFT_PAREN,  /* ( */
+  T_RIGHT_PAREN, /* ) */
+  T_LEFT_BRACE,  /* { */
+  T_RIGHT_BRACE, /* } */
+  T_SEMICOLON,   /* ; */
+  T_COMMA,       /* , */
 
   /* Palavras-chave */
-  SE,        /* se */
-  ENTAO,     /* entao */
-  SENAO,     /* senao */
-  ENQUANTO,  /* enquanto */
-  RETORNE,   /* retorne */
-  CAR,       /* car */
-  INT,       /* int */
-  LEIA,      /* leia */
-  ESCREVA,   /* escreva */
-  NOVALINHA, /* novalinha */
-  EXECUTE,   /* execute */
-  PROGRAMA,  /* programa */
+  T_SE,        /* se */
+  T_ENTAO,     /* entao */
+  T_SENAO,     /* senao */
+  T_ENQUANTO,  /* enquanto */
+  T_RETORNE,   /* retorne */
+  T_CAR,       /* car */
+  T_INT,       /* int */
+  T_LEIA,      /* leia */
+  T_ESCREVA,   /* escreva */
+  T_NOVALINHA, /* novalinha */
+  T_EXECUTE,   /* execute */
+  T_PROGRAMA,  /* programa */
 
 } token_t;
 

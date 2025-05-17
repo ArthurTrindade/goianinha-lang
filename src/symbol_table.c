@@ -31,7 +31,7 @@ symbol_t *symbol_new(char *lexeme, token_t token) {
   symbol_t *s = (symbol_t *)malloc(sizeof(symbol_t));
   if (s != NULL) {
     s->lexeme = lexeme;
-    s->type = token;
+    s->symbol_type = token;
   }
   return s;
 }
@@ -62,51 +62,99 @@ symbol_t *symbol_search(env_t env, char *lexeme) {
   return s;
 }
 
+symbol_t *symbol_var(char *l, token_t dt, int pos, int line) {
+  symbol_t *s = (symbol_t *)malloc(sizeof(symbol_t));
+
+  if (s) {
+    s->lexeme = l;
+    s->symbol_type = VAR;
+    s->data_type = dt;
+    s->pos = pos;
+    s->func = NULL;
+    s->line = line;
+  }
+
+  return s;
+}
+
+symbol_t *symbol_param(char *l, token_t dt, int pos, scope_t func, int line) {
+  symbol_t *s = (symbol_t *)malloc(sizeof(symbol_t));
+
+  if (s) {
+    s->lexeme = l;
+    s->symbol_type = PARAM;
+    s->data_type = dt;
+    s->pos = pos;
+    s->func = func;
+    s->line = line;
+  }
+
+  return s;
+}
+
+symbol_t *symbol_function(char *l, token_t return_type, int num_param,
+                          int line) {
+  symbol_t *s = (symbol_t *)malloc(sizeof(symbol_t));
+
+  if (s) {
+    s->lexeme = l;
+    s->symbol_type = PARAM;
+    s->data_type = return_type;
+    s->pos = num_param;
+    s->func = NULL;
+    s->line = line;
+  }
+
+  return s;
+}
+
 void symbol_print(symbol_t *s) {
   if (s == NULL) {
     printf("Símbolo nulo\n");
     return;
   }
-  printf("Lexeme: %s, Type: %d\n", s->lexeme, s->type);
+  printf("Lexeme: %s, Type: %d\n", s->lexeme, s->symbol_type);
 }
 
-int main() {
-
-  env_t env = env_new();
-
-  scope_t scope1 = symboltable_new();
-  scope_t scope2 = symboltable_new();
-  env_add(env, scope1);
-  env_add(env, scope2);
-
-  symbol_t s1 = {.lexeme = "y", .type = IDENTIFIER};
-  symbol_t s2 = {.lexeme = "z", .type = IDENTIFIER};
-  symbol_t s3 = {.lexeme = "soma", .type = NUMBER};
-  symbol_t s4 = {.lexeme = "a", .type = STRING};
-  symboltable_set(scope1, &(symbol_t){.lexeme = "x", .type = IDENTIFIER});
-  symboltable_set(scope1, &s1);
-  symboltable_set(scope1, &s2);
-
-  symboltable_set(scope2, &s2);
-  symboltable_set(scope2, &s3);
-  symboltable_set(scope2, &s4);
-
-  symbol_t *symbol = NULL;
-  symbol_t *symbol2 = NULL;
-
-  printf("Scope 1\n");
-  symbol2 = symbol_search(env, "z");
-  symbol_print(symbol2);
-
-  printf("Scope 2\n");
-  symbol2 = symbol_search(env, "a");
-  symbol_print(symbol2);
-
-  symbol2 = symbol_search(env, "x");
-  symbol_print(symbol2);
-
-  symbol2 = symbol_search(env, "soma");
-  symbol_print(symbol2);
-
-  env_free(env);
-}
+/**/
+/* int main() { */
+/**/
+/*   env_t env = env_new(); */
+/**/
+/*   scope_t scope1 = symboltable_new(); */
+/*   scope_t scope2 = symboltable_new(); */
+/*   env_add(env, scope1); */
+/*   env_add(env, scope2); */
+/**/
+/*   symbol_t s1 = {.lexeme = "y", .symbol_type = IDENTIFIER}; */
+/*   symbol_t s2 = {.lexeme = "z", .symbol_type = IDENTIFIER}; */
+/*   symbol_t s3 = {.lexeme = "soma", .symbol_type = NUMBER}; */
+/*   symbol_t s4 = {.lexeme = "a", .symbol_type = STRING}; */
+/*   symboltable_set(scope1, */
+/*                   &(symbol_t){.lexeme = "x", .symbol_type = IDENTIFIER}); */
+/*   symboltable_set(scope1, &s1); */
+/*   symboltable_set(scope1, &s2); */
+/**/
+/*   symboltable_set(scope2, &s2); */
+/*   symboltable_set(scope2, &s3); */
+/*   symboltable_set(scope2, &s4); */
+/**/
+/*   symbol_t *symbol = NULL; */
+/*   symbol_t *symbol2 = NULL; */
+/**/
+/*   printf("Scope 1\n"); */
+/*   symbol2 = symbol_search(env, "z"); */
+/*   symbol_print(symbol2); */
+/**/
+/*   printf("Scope 2\n"); */
+/*   symbol2 = symbol_search(env, "a"); */
+/*   symbol_print(symbol2); */
+/**/
+/*   symbol2 = symbol_search(env, "x"); */
+/*   symbol_print(symbol2); */
+/**/
+/*   symbol2 = symbol_search(env, "soma"); */
+/*   symbol_print(symbol2); */
+/**/
+/*   env_free(env); */
+/* } */
