@@ -11,16 +11,15 @@ extern FILE *yyin;
 extern char *yytext;
 extern int yylineno;
 
-ast_t root;
-
 void yyerror(const char *s);
-%}
 
+ast_t root;
+%}
 
 %union {
   int line;
   char *lexeme;
-  symbol_t* ast;
+  ast_t *ast;
 }
 
 /* declarações de símbolos terminais */
@@ -41,7 +40,7 @@ void yyerror(const char *s);
 /* regras gramaticais */
 %%
 Programa:
-        DeclFuncVar DeclProg { root = $1; }
+        DeclFuncVar DeclProg
         ;
 
 DeclFuncVar:
@@ -186,8 +185,8 @@ int main(int argc, char **argv) {
     int res = yyparse();
     printf("%d\n", res);
     
-    // printf("%s\n", root->symbol->lexeme);
-    // ast_travel(root);
+    printf("Teste primeiro lexema\n");
+    ast_travel(root);
 
     return 0;
 }

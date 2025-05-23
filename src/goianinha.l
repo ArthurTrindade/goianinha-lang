@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+
+#include "../include/ast.h"
 #include "goianinha.tab.h"
 
 struct keyword_map {

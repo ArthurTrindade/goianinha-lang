@@ -1,4 +1,4 @@
-#include "ast.h"
+#include "../include/ast.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -16,9 +16,9 @@ ast_t ast_set(symbol_t *s, ast_t l, ast_t r) {
 }
 
 void ast_travel(ast_t root) {
+  printf("Chegou na ast travel\n");
   if (root) {
     /*TODO*/
-    printf("Chegou na ast travel\n");
     printf("%s\n", root->symbol->lexeme);
     ast_travel(root->left);
     ast_travel(root->right);

@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "../include/symbol_table.h"
+#include "../include/token.h"
 
 env_t env_new() {
   env_t e = (env_t)malloc(sizeof(list_t));
@@ -67,7 +68,7 @@ symbol_t *symbol_var(char *l, token_t dt, int pos, int line) {
 
   if (s) {
     s->lexeme = l;
-    s->symbol_type = VAR;
+    s->symbol_type = T_VAR;
     s->data_type = dt;
     s->pos = pos;
     s->func = NULL;
@@ -82,7 +83,7 @@ symbol_t *symbol_param(char *l, token_t dt, int pos, scope_t func, int line) {
 
   if (s) {
     s->lexeme = l;
-    s->symbol_type = PARAM;
+    s->symbol_type = T_PARAM;
     s->data_type = dt;
     s->pos = pos;
     s->func = func;
@@ -98,7 +99,7 @@ symbol_t *symbol_function(char *l, token_t return_type, int num_param,
 
   if (s) {
     s->lexeme = l;
-    s->symbol_type = PARAM;
+    s->symbol_type = T_PARAM;
     s->data_type = return_type;
     s->pos = num_param;
     s->func = NULL;
