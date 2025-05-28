@@ -1,7 +1,11 @@
-int x,y,z,v;
+int x, y, z;
 
 programa {
     int x;
-    escreva x; escreva "arthur"; escreva y; escreva " "; escreva z;
+    escreva x; 
+    escreva "arthur"; 
+    escreva y; 
+    escreva " "; 
+    escreva z;
     escreva "asdf"; 
 }

@@ -155,7 +155,7 @@ UnExpr:
 PrimExpr:
         IDENTIFIER LEFT_PAREN ListExpr RIGHT_PAREN 
         | IDENTIFIER LEFT_PAREN RIGHT_PAREN
-        | IDENTIFIER { symbol_t *s = symbol_var($1, T_CAR, 0, yylineno); $$ = ast_set(s, NULL, NULL); }
+        | IDENTIFIER
         | CARCONST
         | INTCONST
         | LEFT_PAREN Expr RIGHT_PAREN 

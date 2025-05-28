@@ -36,12 +36,40 @@ struct decl {
   struct type *type;
   struct expr *value;
   struct stmt *code;
-  // struct decl *next;
+  struct decl *next;
 };
 
-struct decl_list {
-  struct decl *decl;
-  struct decl_list *decl_next;
+struct decl_prog {
+  struct decl_funcvar *fun_var;
+  struct stmt *block;
+};
+
+struct decl_funcvar {
+  type_t type;
+  char *id;
+  struct decl_var *decl_var;
+  struct decl_func *decl_func;
+  struct decl_funcvar *next;
+};
+
+struct block {
+  struct decl_varlist *var_list;
+  struct stmt_list *stmt_list;
+};
+
+struct decl_varlist {
+  struct decl_var *var;
+  struct decl_varlist *next;
+};
+
+struct decl_var {
+  char *name;
+  struct decl_var *next;
+};
+
+struct decl_func {
+  struct param_list *params;
+  struct block *block;
 };
 
 struct stmt {
@@ -57,17 +85,21 @@ struct stmt {
 
 struct stmt_list {
   struct stmt *stmt;
-  struct stmt_list *stmt_next;
+  struct stmt_list *next;
 };
 
 struct expr {
   expr_t kind;
   struct expr *left;
   struct expr *right;
-
   const char *name;
   int integer_value;
   const char *string_literal;
+};
+
+struct expr_list {
+  struct expr *expr;
+  struct expr_list *next;
 };
 
 struct type {
