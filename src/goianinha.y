@@ -19,7 +19,7 @@ ast_t root;
 %union {
   int line;
   char *lexeme;
-  ast_t *ast;
+  ast_t ast;
 }
 
 /* declarações de símbolos terminais */
@@ -34,13 +34,13 @@ ast_t root;
 /* declarações de símbolos não-terminal inicial */
 %start Programa
 %type <ast> DeclFuncVar DeclProg DeclVar DeclFunc ListaParametros ListaParametrosCont
-%type Bloco ListaDeclVar Tipo ListaComando Comando Expr OrExpr AndExpr EqExpr DesigExpr
-%type AddExpr MulExpr UnExpr PrimExpr ListExpr
+%type <ast> Bloco ListaDeclVar Tipo ListaComando Comando Expr OrExpr AndExpr EqExpr DesigExpr
+%type <ast> AddExpr MulExpr UnExpr PrimExpr ListExpr
 
 /* regras gramaticais */
 %%
 Programa:
-        DeclFuncVar DeclProg
+        DeclFuncVar DeclProg 
         ;
 
 DeclFuncVar:
@@ -155,7 +155,7 @@ UnExpr:
 PrimExpr:
         IDENTIFIER LEFT_PAREN ListExpr RIGHT_PAREN 
         | IDENTIFIER LEFT_PAREN RIGHT_PAREN
-        | IDENTIFIER 
+        | IDENTIFIER { symbol_t *s = symbol_var($1, T_CAR, 0, yylineno); $$ = ast_set(s, NULL, NULL); }
         | CARCONST
         | INTCONST
         | LEFT_PAREN Expr RIGHT_PAREN 
@@ -186,6 +186,7 @@ int main(int argc, char **argv) {
     printf("%d\n", res);
     
     printf("Teste primeiro lexema\n");
+    // printf("%s\n", root->symbol->lexeme);
     ast_travel(root);
 
     return 0;
