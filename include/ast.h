@@ -16,13 +16,24 @@ typedef enum {
 } stmt_t;
 
 typedef enum {
+  EXPR_OR,
+  EXPR_AND,
+  EXPR_EQ,
+  EXPR_NEQ,
+  EXPR_INQ,
+  EXPR_LT,
+  EXPR_LEQ,
+  EXPR_GT,
+  EXPR_GEQ,
   EXPR_ADD,
   EXPR_SUB,
   EXPR_MUL,
   EXPR_DIV,
-  EXPR_NAME,
+  EXPR_NOT,
+  /* TODO: - PrimExpr */
+  EXPR_ID,
   EXPR_INTEGER_LITERAL,
-  EXPR_STRING_LITERAL
+  EXPR_STRING_LITERAL,
 } expr_t;
 
 typedef enum {
@@ -31,17 +42,9 @@ typedef enum {
   TYPE_FUNCTION,
 } type_t;
 
-struct decl {
-  char *name;
-  struct type *type;
-  struct expr *value;
-  struct stmt *code;
-  struct decl *next;
-};
-
-struct decl_prog {
-  struct decl_funcvar *fun_var;
-  struct stmt *block;
+struct program {
+  struct decl_funcvar *funcvar;
+  struct decl_prog *prog;
 };
 
 struct decl_funcvar {
@@ -52,14 +55,8 @@ struct decl_funcvar {
   struct decl_funcvar *next;
 };
 
-struct block {
-  struct decl_varlist *var_list;
-  struct stmt_list *stmt_list;
-};
-
-struct decl_varlist {
-  struct decl_var *var;
-  struct decl_varlist *next;
+struct decl_prog {
+  struct stmt *block;
 };
 
 struct decl_var {
@@ -72,15 +69,26 @@ struct decl_func {
   struct block *block;
 };
 
-struct stmt {
-  stmt_t kind;
-  struct decl *decl;
-  struct expr *init_expr;
-  struct expr *expr;
-  struct expr *next_expr;
-  struct stmt *body;
-  struct stmt *else_body;
-  struct stmt *next;
+struct param_list {
+  struct param_listcount *param_count;
+};
+
+struct param_listcount {
+  type_t type;
+  char *id;
+  struct param_listcount *next;
+};
+
+struct block {
+  struct decl_varlist *var_list;
+  struct stmt_list *stmt_list;
+};
+
+struct decl_varlist {
+  type_t type;
+  char *id;
+  struct decl_var *var;
+  struct decl_varlist *next;
 };
 
 struct stmt_list {
@@ -88,13 +96,67 @@ struct stmt_list {
   struct stmt_list *next;
 };
 
+struct stmt {
+  stmt_t kind;
+  char *id;
+  char *str;
+  struct block *block;
+  struct stmt *body;
+  struct stmt *else_body;
+};
+
 struct expr {
   expr_t kind;
-  struct expr *left;
-  struct expr *right;
-  const char *name;
-  int integer_value;
-  const char *string_literal;
+  char *id;
+  struct expr_or *expr_or;
+  struct expr *expr;
+};
+
+struct expr_or {
+  expr_t kind;
+  struct expr_or *expr_or;
+  struct expr_and *expr_and;
+};
+
+struct expr_and {
+  expr_t kind;
+  struct expr_and *expr_and;
+  struct expr_eq *expr_eq;
+};
+
+struct expr_eq {
+  expr_t kind;
+  struct expr_eq *expr_eq;
+  struct expr_ineq *expr_ineq;
+};
+
+struct expr_ineq {
+  expr_t kind;
+  struct expr_ineq *expr_ineq;
+  struct expr_add *expr_add;
+};
+
+struct expr_add {
+  expr_t kind;
+  struct expr_add *expr_add;
+  struct expr_mul *expr_mult;
+};
+
+struct expr_mult {
+  expr_t kind;
+  struct expr_mult *expr_mult;
+  struct expr_un *expr_un;
+};
+
+struct expr_un {
+  expr_t kind;
+  struct expr_prim;
+};
+
+struct expr_prim {
+  char *id;
+  struct expr *expr;
+  struct expr_list *expr_list;
 };
 
 struct expr_list {
@@ -102,16 +164,14 @@ struct expr_list {
   struct expr_list *next;
 };
 
-struct type {
-  type_t kind;
-  struct type *subtype;
-  struct param_list *params;
-};
-
-struct param_list {
-  char *name;
-  struct type *type;
-  struct param_list *next;
-};
+// struct expr {
+//   expr_t kind;
+//   struct expr_list *expr_list;
+//   const char *id;
+//   struct expr *left;
+//   struct expr *right;
+//   int integer_literal;
+//   const char char_literal;
+// };
 
 #endif

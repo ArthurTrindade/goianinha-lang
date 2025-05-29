@@ -19,11 +19,10 @@ ast_t root;
 %union {
   int line;
   char *lexeme;
-  ast_t ast;
 }
 
 /* declarações de símbolos terminais */
-%token <lexeme> IDENTIFIER STRING
+%token IDENTIFIER STRING
 %token NUMBER
 %token PLUS MINUS COMMA SEMICOLON PROGRAMA LEFT_PAREN RIGHT_PAREN LEFT_BRACE RIGHT_BRACE
 %token RETORNE LEIA ESCREVA ENQUANTO SENAO ENTAO EXECUTE 
@@ -33,9 +32,9 @@ ast_t root;
 
 /* declarações de símbolos não-terminal inicial */
 %start Programa
-%type <ast> DeclFuncVar DeclProg DeclVar DeclFunc ListaParametros ListaParametrosCont
-%type <ast> Bloco ListaDeclVar Tipo ListaComando Comando Expr OrExpr AndExpr EqExpr DesigExpr
-%type <ast> AddExpr MulExpr UnExpr PrimExpr ListExpr
+%type DeclFuncVar DeclProg DeclVar DeclFunc ListaParametros ListaParametrosCont
+%type Bloco ListaDeclVar Tipo ListaComando Comando Expr OrExpr AndExpr EqExpr DesigExpr
+%type AddExpr MulExpr UnExpr PrimExpr ListExpr
 
 /* regras gramaticais */
 %%

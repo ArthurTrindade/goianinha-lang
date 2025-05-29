@@ -2,25 +2,33 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-ast_t ast_set(symbol_t *s, ast_t l, ast_t r) {
+struct program *ast_prog(struct decl_funcvar *funcvar,
+                         struct decl_prog *decl_prog) {
 
-  ast_t a = (ast_t)malloc(sizeof(astnode_t));
+  struct program *p = (struct program *)malloc(sizeof(*p));
 
-  if (a) {
-    a->symbol = s;
-    a->left = l;
-    a->right = r;
+  if (p) {
+    p->prog = decl_prog;
+    p->funcvar = funcvar;
   }
 
-  return a;
+  return p;
 }
 
-void ast_travel(ast_t root) {
-  printf("Chegou na ast travel\n");
-  if (root) {
-    /*TODO*/
-    printf("%s\n", root->symbol->lexeme);
-    ast_travel(root->left);
-    ast_travel(root->right);
+struct decl_funcvar *ast_decl_funcvar(type_t type, char *id,
+                                      struct decl_var *decl_var,
+                                      struct decl_func *decl_func,
+                                      struct decl_funcvar *next) {
+
+  struct decl_funcvar *df = (struct decl_funcvar *)malloc(sizeof(*df));
+
+  if (df) {
+    df->type = type;
+    df->id = id;
+    df->decl_var = decl_var;
+    df->decl_func = decl_func;
+    df->next = next;
   }
+
+  return df;
 }
