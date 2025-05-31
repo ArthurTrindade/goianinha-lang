@@ -11,18 +11,35 @@ extern FILE *yyin;
 extern char *yytext;
 extern int yylineno;
 
+extern decl_funcvar_t *ast_decl_funcvar(type_e type, char *id, decl_var_t *decl_var,
+                                 decl_func_t *decl_func, decl_funcvar_t *next) ;
+
 void yyerror(const char *s);
 
-ast_t root;
+program_t *root;
+
 %}
 
 %union {
   int line;
-  char *lexeme;
+  char *id;
+  program_t *program;
+ decl_funcvar_t *declfv;
+  decl_prog_t *declp;
+  decl_var_t *declvar;
+  decl_func_t *declf;
+  param_list_t *params;
+  param_listcount_t *paramsl;
+  block_t *blk;
+  decl_varlist_t *declvl;
+  cmd_list_t *cmdl;
+  cmd_t *cmd;
+  expr_t *expr;
+  expr_list_t *exprl;
 }
 
 /* declarações de símbolos terminais */
-%token IDENTIFIER STRING
+%token <id> IDENTIFIER STRING
 %token NUMBER
 %token PLUS MINUS COMMA SEMICOLON PROGRAMA LEFT_PAREN RIGHT_PAREN LEFT_BRACE RIGHT_BRACE
 %token RETORNE LEIA ESCREVA ENQUANTO SENAO ENTAO EXECUTE 
@@ -31,20 +48,29 @@ ast_t root;
 %token STAR SLASH INT CAR NOVALINHA INTCONST CARCONST
 
 /* declarações de símbolos não-terminal inicial */
-%start Programa
-%type DeclFuncVar DeclProg DeclVar DeclFunc ListaParametros ListaParametrosCont
-%type Bloco ListaDeclVar Tipo ListaComando Comando Expr OrExpr AndExpr EqExpr DesigExpr
-%type AddExpr MulExpr UnExpr PrimExpr ListExpr
+%start  Programa
+%type <declfv> DeclFuncVar 
+%type <declp> DeclProg
+%type <declvar> DeclVar 
+%type <declf> DeclFunc 
+%type <params> ListaParametros
+%type <paramsl> ListaParametrosCont
+%type <blk> Bloco 
+%type <declvl> ListaDeclVar 
+%type <id> Tipo 
+%type <cmdl> ListaComando 
+%type <cmd>Comando
+%type <expr> Expr OrExpr AndExpr EqExpr DesigExpr AddExpr MulExpr UnExpr PrimExpr ListExpr
 
 /* regras gramaticais */
 %%
 Programa:
-        DeclFuncVar DeclProg 
+        DeclFuncVar DeclProg { }
         ;
 
 DeclFuncVar:
-           Tipo IDENTIFIER DeclVar SEMICOLON DeclFuncVar 
-           | Tipo IDENTIFIER DeclFunc DeclFuncVar 
+           Tipo IDENTIFIER DeclVar SEMICOLON DeclFuncVar { $$ = ast_decl_funcvar(TYPE_INTEGER, $2, $3, NULL, $5); }
+           | Tipo IDENTIFIER DeclFunc DeclFuncVar
            | /* vazio */
            ;
 
@@ -186,7 +212,6 @@ int main(int argc, char **argv) {
     
     printf("Teste primeiro lexema\n");
     // printf("%s\n", root->symbol->lexeme);
-    ast_travel(root);
 
     return 0;
 }

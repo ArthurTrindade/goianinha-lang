@@ -53,9 +53,9 @@ DIGIT   [0-9]+
 {ID}     { return check_keyword(yytext); }
 
 {DIGIT}  {
-            yylval.lexeme = (char*)malloc(sizeof(yytext)+1);
-            if (yylval.lexeme) {
-                strcpy(yylval.lexeme, yytext);
+            yylval.id = (char*)malloc(sizeof(yytext)+1);
+            if (yylval.id) {
+                strcpy(yylval.id, yytext);
                 return INTCONST;
             }
             printf("Erro de memória\n");
