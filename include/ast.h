@@ -6,6 +6,9 @@
 
 typedef enum {
   STMT_DECL,
+  STMT_LEIA,
+  STMT_ESC,
+  STMT_STR,
   STMT_EXPR,
   STMT_IF,
   STMT_IF_ELSE,
@@ -30,10 +33,11 @@ typedef enum {
   EXPR_MUL,
   EXPR_DIV,
   EXPR_NOT,
-  /* TODO: - PrimExpr */
+  EXPR_BANG,
   EXPR_ID,
   EXPR_INTEGER_LITERAL,
-  EXPR_STRING_LITERAL,
+  EXPR_CHAR_LITERAL,
+  EXPR
 } expr_e;
 
 typedef enum {
@@ -100,6 +104,7 @@ typedef struct cmd {
   stmt_e kind;
   char *id;
   char *str;
+  struct expr *expr;
   struct block *block;
   struct cmd *body;
   struct cmd *else_body;

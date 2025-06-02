@@ -50,7 +50,16 @@ DIGIT   [0-9]+
 
 \"([^\\\n"]|\\.)*\"      { return STRING; }
 
-{ID}     { return check_keyword(yytext); }
+{ID}     { 
+            yylval.id = (char*)malloc(sizeof(yytext)+1);
+            if (yylval.id) {
+                strcpy(yylval.id, yytext);
+                return check_keyword(yytext);
+            }
+
+            printf("Erro de memória\n");
+            exit(1);
+          }
 
 {DIGIT}  {
             yylval.id = (char*)malloc(sizeof(yytext)+1);

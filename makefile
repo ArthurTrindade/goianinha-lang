@@ -25,7 +25,8 @@ BISON_OBJ = $(BUILD_DIR)/goianinha.tab.o
 SRC_FILES = $(SRC_DIR)/list.c \
             $(SRC_DIR)/ast.c \
             $(SRC_DIR)/symbol_table.c \
-            $(SRC_DIR)/hashmap.c
+            $(SRC_DIR)/hashmap.c \
+			$(SRC_DIR)/walker.c
 
 # Generate object file paths from source files
 OBJ_FILES = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRC_FILES))
