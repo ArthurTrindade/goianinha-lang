@@ -18,11 +18,11 @@ int main() {
   decl_varlist_t *var_list1 = malloc(sizeof(decl_var_t));
   var_list1->id = strdup("x");
   var_list1->next = NULL;
-  var_list1->type = TYPE_INTEGER;
+  var_list1->type = TYPE_INT;
 
   decl_varlist_t *var_list2 = malloc(sizeof(decl_varlist_t));
   var_list2->id = strdup("y");
-  var_list2->type = TYPE_INTEGER;
+  var_list2->type = TYPE_INT;
   var_list2->next = NULL;
   var_list2->var = NULL;
 
@@ -60,17 +60,24 @@ int main() {
   expr->left = expr1;
   expr->right = expr2;
 
-  cmd_t *leia_cmd = malloc(sizeof(cmd_t));
-  leia_cmd->kind = STMT_ESC;
-  leia_cmd->id = strdup("x");
-  leia_cmd->expr = expr;
-  leia_cmd->block = NULL;
-  leia_cmd->body = NULL;
-  leia_cmd->else_body = NULL;
+  cmd_t *leia_cmd = ast_cmd_leia("x");
+
+  expr_t expr_if1 = {.kind = EXPR_ID, .id = strdup("n")};
+  expr_t expr_if2 = {.kind = EXPR_INTEGER_LITERAL, .integer_literal = 0};
+  expr_t expr_if = {.kind = EXPR_EQ,
+                    .id = NULL,
+                    .integer_literal = 0,
+                    .char_literal = 0,
+                    .left = &expr_if1,
+                    .right = &expr_if2};
+
+  cmd_t *if_cmd = ast_cmd_if(&expr_if, NULL);
 
   cmd_list_t *cmd_list = malloc(sizeof(cmd_list_t));
   cmd_list->cmd = leia_cmd;
   cmd_list->next = NULL;
+
+  cmd_list->cmd = if_cmd;
 
   block->cmd_list = cmd_list;
 

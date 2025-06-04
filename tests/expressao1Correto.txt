@@ -1,5 +1,16 @@
+int x, y;
+int sum;
+int soma(int n, int m) {
+    retorne n + m;
+}
+int mult(int u, int v) {
+    retorne u + v;
+}
+int mean;
 programa {
     int x;
     int y;
+    leia x;
+    leia y;
     escreva x + y;
 }

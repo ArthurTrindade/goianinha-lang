@@ -8,7 +8,7 @@ make
 if [ $? -eq 0 ]; then
   # Run the program
   echo "Running the program..."
-  ./goianinha
+  ./goianinha tests/main.g
 else
   echo "Build failed. Please check for errors."
 fi

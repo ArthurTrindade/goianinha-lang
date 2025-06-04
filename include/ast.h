@@ -41,8 +41,8 @@ typedef enum {
 } expr_e;
 
 typedef enum {
-  TYPE_INTEGER,
-  TYPE_STRING,
+  TYPE_INT,
+  TYPE_CHAR,
   TYPE_FUNCTION,
 } type_e;
 
@@ -100,14 +100,35 @@ typedef struct cmd_list {
   struct cmd_list *next;
 } cmd_list_t;
 
+// typedef struct cmd {
+//   stmt_e kind;
+//   char *id;
+//   char *str;
+//   struct expr *expr;
+//   struct block *block;
+//   struct cmd *body;
+//   struct cmd *else_body;
+// } cmd_t;
+//
 typedef struct cmd {
+
   stmt_e kind;
   char *id;
-  char *str;
   struct expr *expr;
-  struct block *block;
-  struct cmd *body;
-  struct cmd *else_body;
+  struct block *blk;
+  union {
+    struct {
+      struct expr *cond;
+      struct cmd *body;
+      struct cmd *else_body;
+    } if_cmd;
+
+    struct {
+      struct expr *cond;
+      struct cmd *body;
+    } while_cmd;
+  };
+
 } cmd_t;
 
 typedef struct expr {
@@ -125,4 +146,36 @@ typedef struct expr_list {
   struct expr_list *next;
 } expr_list_t;
 
+program_t *ast_program(decl_funcvar_t *funcvar, decl_prog_t *decl_prog);
+
+decl_funcvar_t *ast_decl_funcvar(type_e type, char *id, decl_var_t *decl_var,
+                                 decl_func_t *decl_func, decl_funcvar_t *next);
+decl_prog_t *ast_decl_prog(block_t *blk);
+decl_var_t *ast_decl_var(char *id, decl_var_t *next);
+decl_func_t *ast_decl_func(param_list_t *params, block_t *blk);
+param_list_t *ast_param_list(param_listcount_t *plc);
+param_listcount_t *ast_param_listcount(type_e t, char *id,
+                                       param_listcount_t *next);
+block_t *ast_block(decl_varlist_t *dvl, cmd_list_t *cmdl);
+
+decl_varlist_t *ast_decl_varlist(type_e t, char *id, decl_var_t *var,
+                                 decl_varlist_t *next);
+
+cmd_list_t *ast_cmd_list(cmd_t *cmd, cmd_list_t *next);
+
+cmd_t *ast_cmd(stmt_e ctype, char *id, char *str, expr_t *expr, block_t *blk,
+               cmd_t *body, cmd_t *else_body);
+
+expr_t *ast_expr(expr_e e, char *id, int const_int, const char const_char,
+                 expr_t *l, expr_t *r, expr_list_t *elist);
+
+expr_list_t *ast_expr_list(expr_t *expr, expr_list_t *next);
+cmd_t *ast_cmd_expr(expr_t *expr);
+cmd_t *ast_cmd_block(block_t *blk);
+cmd_t *ast_cmd_while(expr_t *expr, cmd_t *body);
+cmd_t *ast_cmd_if(expr_t *expr, cmd_t *body);
+cmd_t *ast_cmd_if_else(expr_t *expr, cmd_t *body, cmd_t *else_body);
+cmd_t *ast_cmd_leia(char *id);
+cmd_t *ast_cmd_escreva(expr_t *expr);
+cmd_t *ast_cmd_ret(expr_t *expr);
 #endif

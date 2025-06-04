@@ -48,7 +48,14 @@ DIGIT   [0-9]+
 
 "/*"([^*]|\*+[^/])*"*"+"/"     { /* Ignorar comentário válido */ }
 
-\"([^\\\n"]|\\.)*\"      { return STRING; }
+\"([^\\\n"]|\\.)*\" { 
+                        yylval.id = (char*)malloc(sizeof(yytext)+1);
+                        if (yylval.id) {
+                        strcpy(yylval.id, yytext);
+                            return check_keyword(yytext);
+                        }
+                        return STRING; 
+                    }
 
 {ID}     { 
             yylval.id = (char*)malloc(sizeof(yytext)+1);
