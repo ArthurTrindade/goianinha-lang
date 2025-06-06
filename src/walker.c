@@ -17,51 +17,51 @@ void walk_expr(expr_t *expr) {
     return;
 
   switch (expr->kind) {
-  case EXPR_INTEGER_LITERAL:
+  case T_NUMBER:
     printf("Integer: %d\n", expr->integer_literal);
     break;
-  case EXPR_CHAR_LITERAL:
+  case T_CAR:
     printf("Char: %c\n", expr->char_literal);
     break;
-  case EXPR_ID:
+  case T_IDENTIFIER:
     printf("ID: %s\n", expr->id);
     break;
-  case EXPR_ADD:
+  case T_PLUS:
     printf("Expr: (\n");
     walk_expr(expr->left);
     printf(" + ");
     walk_expr(expr->right);
     printf(")\n");
     break;
-  case EXPR_SUB:
+  case T_MINUS:
     printf("Expr: (\n");
     walk_expr(expr->left);
     printf(" - ");
     walk_expr(expr->right);
     printf(")\n");
     break;
-  case EXPR_MUL:
+  case T_STAR:
     printf("Expr: (\n");
     walk_expr(expr->left);
     printf(" * ");
     walk_expr(expr->right);
     printf(")\n");
     break;
-  case EXPR_DIV:
+  case T_SLASH:
     printf("Expr: (\n");
     walk_expr(expr->left);
     printf(" / ");
     walk_expr(expr->right);
     printf(")\n");
     break;
-  case EXPR_EQ:
+  case T_EQUAL:
     printf("Expr: (\n");
     walk_expr(expr->left);
     printf(" == ");
     walk_expr(expr->right);
     printf(")\n");
     break;
-  case EXPR:
+  case T_EXPR:
     walk_expr(expr->left);
   default:
     /* printf("Expr tipo %s não tratado\n", enum_to_string(expr_map,
@@ -75,20 +75,20 @@ void walk_cmd(cmd_t *cmd) {
     return;
 
   switch (cmd->kind) {
-  case STMT_LEIA:
+  case T_LEIA:
     printf("Leia variável: %s\n", cmd->id);
     break;
-  case STMT_ESC:
+  case T_ESCREVA:
     printf("Escreva expressão:\n");
     walk_expr(cmd->expr);
     break;
-  case STMT_IF:
+  case T_SE:
     printf("If:\nCondição:\n");
     walk_expr(cmd->expr);
     printf("Bloco:\n");
     walk_cmd(cmd->if_cmd.body);
     break;
-  case STMT_IF_ELSE:
+  case T_SE_ENTAO:
     printf("If-Else:\nCondição:\n");
     walk_expr(cmd->expr);
     printf("Bloco then:\n");
@@ -96,21 +96,21 @@ void walk_cmd(cmd_t *cmd) {
     printf("Bloco else:\n");
     walk_cmd(cmd->if_cmd.else_body);
     break;
-  case STMT_WHILE:
+  case T_ENQUANTO:
     printf("While:\nCondição:\n");
     walk_expr(cmd->expr);
     printf("Corpo:\n");
     walk_cmd(cmd->while_cmd.body);
     break;
-  case STMT_RETURN:
+  case T_RETORNE:
     printf("Return expressão:\n");
     walk_expr(cmd->expr);
     break;
-  case STMT_BLOCK:
+  case T_BLOCK:
     printf("Bloco de comandos:\n");
     walk_block(cmd->blk);
     break;
-  case STMT_STR:
+  case T_STRING:
     printf("Escreva String:\n");
     printf("%s\n", cmd->id);
     break;

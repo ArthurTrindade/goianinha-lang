@@ -75,8 +75,8 @@ Programa:
         ;
 
 DeclFuncVar:
-           Tipo IDENTIFIER DeclVar SEMICOLON DeclFuncVar { $$ = ast_decl_funcvar(TYPE_INT, $2, $3, NULL, $5); }
-           | Tipo IDENTIFIER DeclFunc DeclFuncVar { $$ = ast_decl_funcvar(TYPE_INT, $2, NULL, $3, $4); }
+           Tipo IDENTIFIER DeclVar SEMICOLON DeclFuncVar { $$ = ast_decl_funcvar(T_INT, $2, $3, NULL, $5); }
+           | Tipo IDENTIFIER DeclFunc DeclFuncVar { $$ = ast_decl_funcvar(T_INT, $2, NULL, $3, $4); }
            | /* vazio */ { $$ = NULL; }
            ;
 
@@ -99,8 +99,8 @@ ListaParametros:
                ;
 
 ListaParametrosCont:
-                   Tipo IDENTIFIER { $$ = ast_param_listcount(TYPE_INT, $2, NULL); }
-                   | Tipo IDENTIFIER COMMA ListaParametrosCont { $$ = ast_param_listcount(TYPE_INT, $2, $4); }
+                   Tipo IDENTIFIER { $$ = ast_param_listcount(T_INT, $2, NULL); }
+                   | Tipo IDENTIFIER COMMA ListaParametrosCont { $$ = ast_param_listcount(T_INT, $2, $4); }
                    ;
 
 Bloco:
@@ -109,7 +109,7 @@ Bloco:
 
 ListaDeclVar:
             /* vazio */ { $$ = NULL; }
-            | Tipo IDENTIFIER DeclVar SEMICOLON ListaDeclVar { $$ = ast_decl_varlist(TYPE_INT, $2, $3, $5); }
+            | Tipo IDENTIFIER DeclVar SEMICOLON ListaDeclVar { $$ = ast_decl_varlist(T_INT, $2, $3, $5); }
             ;
 
 Tipo:
@@ -137,59 +137,59 @@ Comando:
        ;
 
 Expr:
-    OrExpr  { $$ = ast_expr(EXPR, NULL, 0, 0, $1, NULL, NULL); }
-    | IDENTIFIER EQUAL Expr  { $$ = ast_expr(EXPR_ID, $1, 0, 0, $3, NULL, NULL); }
+    OrExpr  { $$ = ast_expr(T_EXPR, NULL, 0, 0, $1, NULL, NULL); }
+    | IDENTIFIER EQUAL Expr  { $$ = ast_expr(T_IDENTIFIER, $1, 0, 0, $3, NULL, NULL); }
     ;
 
 OrExpr:
-      OrExpr OU AndExpr  { $$ = ast_expr(EXPR_OR, NULL, 0, 0, $1, $3, NULL); }
-      | AndExpr  { $$ = ast_expr(EXPR, NULL, 0, 0, $1, NULL, NULL); }
+      OrExpr OU AndExpr  { $$ = ast_expr(T_OR, NULL, 0, 0, $1, $3, NULL); }
+      | AndExpr  { $$ = ast_expr(T_EXPR, NULL, 0, 0, $1, NULL, NULL); }
       ;
 
 AndExpr:
-       AndExpr E EqExpr { $$ = ast_expr(EXPR_AND, NULL, 0, 0, $1, $3, NULL); }
-       | EqExpr  { $$ = ast_expr(EXPR, NULL, 0, 0, $1, NULL, NULL); }
+       AndExpr E EqExpr { $$ = ast_expr(T_AND, NULL, 0, 0, $1, $3, NULL); }
+       | EqExpr  { $$ = ast_expr(T_EXPR, NULL, 0, 0, $1, NULL, NULL); }
        ;
 
 EqExpr:
-      EqExpr EQUAL_EQUAL DesigExpr { $$ = ast_expr(EXPR_EQ, NULL, 0, 0, $1, $3, NULL); }
-      | EqExpr BANG_EQUAL DesigExpr { $$ = ast_expr(EXPR_NEQ, NULL, 0, 0, $1, $3, NULL); }
-      | DesigExpr { $$ = ast_expr(EXPR, NULL, 0, 0, $1, NULL, NULL); }
+      EqExpr EQUAL_EQUAL DesigExpr { $$ = ast_expr(T_EQUAL, NULL, 0, 0, $1, $3, NULL); }
+      | EqExpr BANG_EQUAL DesigExpr { $$ = ast_expr(T_BANG_EQUAL, NULL, 0, 0, $1, $3, NULL); }
+      | DesigExpr { $$ = ast_expr(T_EXPR, NULL, 0, 0, $1, NULL, NULL); }
       ;
 
 DesigExpr: 
-         DesigExpr LESS AddExpr { $$ = ast_expr(EXPR_LT, NULL, 0, 0, $1, $3, NULL); }
-         | DesigExpr GREATER AddExpr { $$ = ast_expr(EXPR_GT, NULL, 0, 0, $1, $3, NULL); }
-         | DesigExpr GREATER_EQUAL AddExpr { $$ = ast_expr(EXPR_GEQ, NULL, 0, 0, $1, $3, NULL); }
-         | DesigExpr LESS_EQUAL AddExpr { $$ = ast_expr(EXPR_LEQ, NULL, 0, 0, $1, $3, NULL); }
-         | AddExpr { $$ = ast_expr(EXPR, NULL, 0, 0, $1, NULL, NULL); }
+         DesigExpr LESS AddExpr { $$ = ast_expr(T_LESS, NULL, 0, 0, $1, $3, NULL); }
+         | DesigExpr GREATER AddExpr { $$ = ast_expr(T_GREATER, NULL, 0, 0, $1, $3, NULL); }
+         | DesigExpr GREATER_EQUAL AddExpr { $$ = ast_expr(T_GREATER_EQUAL, NULL, 0, 0, $1, $3, NULL); }
+         | DesigExpr LESS_EQUAL AddExpr { $$ = ast_expr(T_LESS_EQUAL, NULL, 0, 0, $1, $3, NULL); }
+         | AddExpr { $$ = ast_expr(T_EXPR, NULL, 0, 0, $1, NULL, NULL); }
          ;
 
 AddExpr:
-       AddExpr PLUS MulExpr { $$ = ast_expr(EXPR_ADD, NULL, 0, 0, $1, $3, NULL); }
-       | AddExpr MINUS MulExpr { $$ = ast_expr(EXPR_SUB, NULL, 0, 0, $1, $3, NULL); }
-       | MulExpr { $$ = ast_expr(EXPR, NULL, 0, 0, $1, NULL, NULL); }
+       AddExpr PLUS MulExpr { $$ = ast_expr(T_PLUS, NULL, 0, 0, $1, $3, NULL); }
+       | AddExpr MINUS MulExpr { $$ = ast_expr(T_MINUS, NULL, 0, 0, $1, $3, NULL); }
+       | MulExpr { $$ = ast_expr(T_EXPR, NULL, 0, 0, $1, NULL, NULL); }
        ;
 
 MulExpr:
-       MulExpr STAR UnExpr { $$ = ast_expr(EXPR_MUL, NULL, 0, 0, $1, $3, NULL); }
-       | MulExpr SLASH UnExpr { $$ = ast_expr(EXPR_DIV, NULL, 0, 0, $1, $3, NULL); }
-       | UnExpr { $$ = ast_expr(EXPR, NULL, 0, 0, $1, NULL, NULL); }
+       MulExpr STAR UnExpr { $$ = ast_expr(T_STAR, NULL, 0, 0, $1, $3, NULL); }
+       | MulExpr SLASH UnExpr { $$ = ast_expr(T_SLASH, NULL, 0, 0, $1, $3, NULL); }
+       | UnExpr { $$ = ast_expr(T_EXPR, NULL, 0, 0, $1, NULL, NULL); }
        ;
 
 UnExpr:
-      MINUS PrimExpr { $$ = ast_expr(EXPR_NOT, NULL, 0, 0, $2, NULL, NULL); }
-      | BANG PrimExpr { $$ = ast_expr(EXPR_BANG, NULL, 0, 0, $2, NULL, NULL); }
-      | PrimExpr { $$ = ast_expr(EXPR, NULL, 0, 0, $1, NULL, NULL); }
+      MINUS PrimExpr { $$ = ast_expr(T_MINUS, NULL, 0, 0, $2, NULL, NULL); }
+      | BANG PrimExpr { $$ = ast_expr(T_BANG, NULL, 0, 0, $2, NULL, NULL); }
+      | PrimExpr { $$ = ast_expr(T_EXPR, NULL, 0, 0, $1, NULL, NULL); }
       ;
 
 PrimExpr:
-        IDENTIFIER LEFT_PAREN ListExpr RIGHT_PAREN { $$ = ast_expr(EXPR_ID, $1, 0, 0, NULL, NULL, $3); }
-        | IDENTIFIER LEFT_PAREN RIGHT_PAREN { $$ = ast_expr(EXPR_ID, $1, 0, 0, NULL, NULL, NULL); }
-        | IDENTIFIER { $$ = ast_expr(EXPR_ID, $1, 0, 0, NULL, NULL, NULL); }
-        | CARCONST   { $$ = ast_expr(EXPR_CHAR_LITERAL, NULL, 0, $1, NULL, NULL, NULL); }
-        | INTCONST   { $$ = ast_expr(EXPR_INTEGER_LITERAL, NULL, $1, 0, NULL, NULL, NULL); }
-        | LEFT_PAREN Expr RIGHT_PAREN { $$ = ast_expr(EXPR, NULL, 0, 0, $2, NULL, NULL); }
+        IDENTIFIER LEFT_PAREN ListExpr RIGHT_PAREN { $$ = ast_expr(T_IDENTIFIER, $1, 0, 0, NULL, NULL, $3); }
+        | IDENTIFIER LEFT_PAREN RIGHT_PAREN { $$ = ast_expr(T_IDENTIFIER, $1, 0, 0, NULL, NULL, NULL); }
+        | IDENTIFIER { $$ = ast_expr(T_IDENTIFIER, $1, 0, 0, NULL, NULL, NULL); }
+        | CARCONST   { $$ = ast_expr(T_CAR, NULL, 0, $1, NULL, NULL, NULL); }
+        | INTCONST   { $$ = ast_expr(T_NUMBER, NULL, $1, 0, NULL, NULL, NULL); }
+        | LEFT_PAREN Expr RIGHT_PAREN { $$ = ast_expr(T_EXPR, NULL, 0, 0, $2, NULL, NULL); }
         ;
 
 ListExpr:

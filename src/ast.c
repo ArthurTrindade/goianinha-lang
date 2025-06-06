@@ -15,7 +15,7 @@ program_t *ast_program(decl_funcvar_t *funcvar, decl_prog_t *decl_prog) {
   return p;
 }
 
-decl_funcvar_t *ast_decl_funcvar(type_e type, char *id, decl_var_t *decl_var,
+decl_funcvar_t *ast_decl_funcvar(types_t type, char *id, decl_var_t *decl_var,
                                  decl_func_t *decl_func, decl_funcvar_t *next) {
 
   decl_funcvar_t *df = (decl_funcvar_t *)malloc(sizeof(decl_funcvar_t));
@@ -74,7 +74,7 @@ param_list_t *ast_param_list(param_listcount_t *plc) {
   return pl;
 }
 
-param_listcount_t *ast_param_listcount(type_e t, char *id,
+param_listcount_t *ast_param_listcount(types_t t, char *id,
                                        param_listcount_t *next) {
 
   param_listcount_t *plc =
@@ -99,7 +99,7 @@ block_t *ast_block(decl_varlist_t *dvl, cmd_list_t *cmdl) {
   return blk;
 }
 
-decl_varlist_t *ast_decl_varlist(type_e t, char *id, decl_var_t *var,
+decl_varlist_t *ast_decl_varlist(types_t t, char *id, decl_var_t *var,
                                  decl_varlist_t *next) {
   decl_varlist_t *dvl = (decl_varlist_t *)malloc(sizeof(decl_varlist_t));
 
@@ -123,31 +123,12 @@ cmd_list_t *ast_cmd_list(cmd_t *cmd, cmd_list_t *next) {
   return cmdl;
 }
 
-/* cmd_t *ast_cmd(stmt_e ctype, char *id, char *str, expr_t *expr, block_t *blk,
- */
-/*                cmd_t *body, cmd_t *else_body) { */
-/**/
-/*   cmd_t *cmd = (cmd_t *)malloc(sizeof(cmd_t)); */
-/**/
-/*   if (cmd) { */
-/*     cmd->kind = ctype; */
-/*     cmd->id = id ? strdup(id) : NULL; */
-/*     cmd->str = str; */
-/*     cmd->expr = expr; */
-/*     cmd->block = blk; */
-/*     cmd->body = body; */
-/*     cmd->else_body = else_body; */
-/*   } */
-/**/
-/*   return cmd; */
-/* } */
-
 cmd_t *ast_cmd_ret(expr_t *expr) {
 
   cmd_t *cmd = (cmd_t *)malloc(sizeof(cmd_t));
 
   if (cmd) {
-    cmd->kind = STMT_RETURN;
+    cmd->kind = T_RETORNE;
     cmd->expr = expr;
   }
 
@@ -158,7 +139,7 @@ cmd_t *ast_cmd_leia(char *id) {
   cmd_t *cmd = (cmd_t *)malloc(sizeof(cmd_t));
 
   if (cmd) {
-    cmd->kind = STMT_LEIA;
+    cmd->kind = T_LEIA;
     cmd->id = id ? strdup(id) : NULL;
   }
 
@@ -169,7 +150,7 @@ cmd_t *ast_cmd_escreva(expr_t *expr) {
   cmd_t *cmd = (cmd_t *)malloc(sizeof(cmd_t));
 
   if (cmd) {
-    cmd->kind = STMT_ESC;
+    cmd->kind = T_ESCREVA;
     cmd->expr = expr;
   }
 
@@ -180,7 +161,7 @@ cmd_t *ast_cmd_expr(expr_t *expr) {
   cmd_t *cmd = (cmd_t *)malloc(sizeof(cmd_t));
 
   if (cmd) {
-    cmd->kind = STMT_EXPR;
+    cmd->kind = T_EXPR;
     cmd->expr = expr;
   }
 
@@ -191,7 +172,7 @@ cmd_t *ast_cmd_block(block_t *blk) {
   cmd_t *cmd = (cmd_t *)malloc(sizeof(cmd_t));
 
   if (cmd) {
-    cmd->kind = STMT_BLOCK;
+    cmd->kind = T_BLOCK;
     cmd->blk = blk;
   }
 
@@ -202,7 +183,7 @@ cmd_t *ast_cmd_while(expr_t *expr, cmd_t *body) {
   cmd_t *cmd = (cmd_t *)malloc(sizeof(cmd_t));
 
   if (cmd) {
-    cmd->kind = STMT_WHILE;
+    cmd->kind = T_ENQUANTO;
     cmd->while_cmd.cond = expr;
     cmd->while_cmd.body = body;
   }
@@ -214,7 +195,7 @@ cmd_t *ast_cmd_if(expr_t *expr, cmd_t *body) {
   cmd_t *if_cmd = (cmd_t *)malloc(sizeof(cmd_t));
 
   if (if_cmd) {
-    if_cmd->kind = STMT_IF;
+    if_cmd->kind = T_SE;
     if_cmd->if_cmd.cond = expr;
     if_cmd->if_cmd.body = body;
     if_cmd->if_cmd.else_body = NULL;
@@ -227,7 +208,7 @@ cmd_t *ast_cmd_if_else(expr_t *expr, cmd_t *body, cmd_t *else_body) {
   cmd_t *if_cmd = (cmd_t *)malloc(sizeof(cmd_t));
 
   if (if_cmd) {
-    if_cmd->kind = STMT_IF_ELSE;
+    if_cmd->kind = T_SE_ENTAO;
     if_cmd->if_cmd.cond = expr;
     if_cmd->if_cmd.body = body;
     if_cmd->if_cmd.else_body = else_body;
@@ -236,7 +217,7 @@ cmd_t *ast_cmd_if_else(expr_t *expr, cmd_t *body, cmd_t *else_body) {
   return if_cmd;
 }
 
-expr_t *ast_expr(expr_e e, char *id, int const_int, char const_char, expr_t *l,
+expr_t *ast_expr(types_t e, char *id, int const_int, char const_char, expr_t *l,
                  expr_t *r, expr_list_t *elist) {
 
   expr_t *expr = (expr_t *)malloc(sizeof(expr_t));

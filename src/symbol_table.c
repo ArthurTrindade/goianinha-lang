@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "../include/symbol_table.h"
-#include "../include/token.h"
+#include "../include/types.h"
 
 env_t env_new() {
   env_t e = (env_t)malloc(sizeof(list_t));
@@ -28,7 +28,7 @@ symbol_t *symboltable_get(scope_t h, const void *key) {
   return (symbol_t *)hashmap_get(h, key);
 }
 
-symbol_t *symbol_new(char *lexeme, token_t token) {
+symbol_t *symbol_new(char *lexeme, types_t token) {
   symbol_t *s = (symbol_t *)malloc(sizeof(symbol_t));
   if (s != NULL) {
     s->lexeme = lexeme;
@@ -63,7 +63,7 @@ symbol_t *symbol_search(env_t env, char *lexeme) {
   return s;
 }
 
-symbol_t *symbol_var(char *l, token_t dt, int pos, int line) {
+symbol_t *symbol_var(char *l, types_t dt, int pos, int line) {
   symbol_t *s = (symbol_t *)malloc(sizeof(symbol_t));
 
   if (s) {
@@ -78,7 +78,7 @@ symbol_t *symbol_var(char *l, token_t dt, int pos, int line) {
   return s;
 }
 
-symbol_t *symbol_param(char *l, token_t dt, int pos, scope_t func, int line) {
+symbol_t *symbol_param(char *l, types_t dt, int pos, scope_t func, int line) {
   symbol_t *s = (symbol_t *)malloc(sizeof(symbol_t));
 
   if (s) {
@@ -93,7 +93,7 @@ symbol_t *symbol_param(char *l, token_t dt, int pos, scope_t func, int line) {
   return s;
 }
 
-symbol_t *symbol_function(char *l, token_t return_type, int num_param,
+symbol_t *symbol_function(char *l, types_t return_type, int num_param,
                           int line) {
   symbol_t *s = (symbol_t *)malloc(sizeof(symbol_t));
 

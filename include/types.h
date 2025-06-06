@@ -3,15 +3,15 @@
  * Definição dos tipos de tokens para o analisador léxico
  */
 
-#ifndef TOKEN_TYPES_H
-#define TOKEN_TYPES_H
+#ifndef TYPES_H
+#define TYPES_H
 
 /*
  * Esta enumeração define todos os tipos de tokens reconhecidos
  * pelo analisador léxico. Os valores são usados tanto pelo scanner
  * quanto pelo parser.
  */
-typedef enum token_ {
+typedef enum types_ {
 
   /* Identificadores e literais */
   T_IDENTIFIER = 258, /* Identificador (nome de variável/função) */
@@ -49,6 +49,7 @@ typedef enum token_ {
   T_SE,        /* se */
   T_ENTAO,     /* entao */
   T_SENAO,     /* senao */
+  T_SE_ENTAO,
   T_ENQUANTO,  /* enquanto */
   T_RETORNE,   /* retorne */
   T_CAR,       /* car */
@@ -59,6 +60,11 @@ typedef enum token_ {
   T_EXECUTE,   /* execute */
   T_PROGRAMA,  /* programa */
 
-} token_t;
+  T_EXPR,
+  T_BLOCK,
+  T_AND,
+  T_OR
 
-#endif /* TOKEN_TYPES_H */
+} types_t;
+
+#endif /* TYPES_H */
