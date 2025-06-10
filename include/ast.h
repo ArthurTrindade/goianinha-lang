@@ -75,7 +75,6 @@ typedef struct cmd {
       struct cmd *body;
     } while_cmd;
   };
-
 } cmd_t;
 
 typedef struct expr {
@@ -110,7 +109,6 @@ param_listcount_t *ast_param_listcount(types_t t, char *id,
                                        param_listcount_t *next);
 
 block_t *ast_block(decl_varlist_t *dvl, cmd_list_t *cmdl);
-
 
 decl_varlist_t *ast_decl_varlist(types_t t, char *id, decl_var_t *var,
                                  decl_varlist_t *next);

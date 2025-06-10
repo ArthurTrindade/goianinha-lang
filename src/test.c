@@ -2,7 +2,7 @@
 #include <string.h>
 
 #include "../include/ast.h"
-#include "../include/walker.h"
+#include "../include/print_ast.h"
 
 int main() {
 

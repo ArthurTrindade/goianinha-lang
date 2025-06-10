@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 #include "../include/ast.h"
-#include "../include/walker.h"
+#include "../include/print_ast.h"
 
 const char *enum_to_string(enum_string_map_t *map, int value) {
   for (int i = 0; map[i].name != NULL; i++) {

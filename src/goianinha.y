@@ -5,15 +5,13 @@
 
 #include "../include/ast.h"
 #include "../include/symbol_table.h"
-#include "../include/walker.h"
+#include "../include/print_ast.h"
 
 extern int yylex();
 extern int yyparse();
 extern FILE *yyin;
 extern char *yytext;
 extern int yylineno;
-
-// extern void walk_program(program_t *root);
 
 void yyerror(const char *s);
 
@@ -39,6 +37,7 @@ program_t *root;
   cmd_t *cmd;
   expr_t *expr;
   expr_list_t *exprl;
+  types_t type;
 }
 
 /* declarações de símbolos terminais */
@@ -62,7 +61,7 @@ program_t *root;
 %type <paramsl> ListaParametrosCont
 %type <blk> Bloco 
 %type <declvl> ListaDeclVar 
-%type <id> Tipo 
+%type <type> Tipo 
 %type <cmdl> ListaComando 
 %type <cmd> Comando
 %type <expr> Expr OrExpr AndExpr EqExpr DesigExpr AddExpr MulExpr UnExpr PrimExpr 
@@ -75,8 +74,8 @@ Programa:
         ;
 
 DeclFuncVar:
-           Tipo IDENTIFIER DeclVar SEMICOLON DeclFuncVar { $$ = ast_decl_funcvar(T_INT, $2, $3, NULL, $5); }
-           | Tipo IDENTIFIER DeclFunc DeclFuncVar { $$ = ast_decl_funcvar(T_INT, $2, NULL, $3, $4); }
+           Tipo IDENTIFIER DeclVar SEMICOLON DeclFuncVar { $$ = ast_decl_funcvar($1, $2, $3, NULL, $5); }
+           | Tipo IDENTIFIER DeclFunc DeclFuncVar { $$ = ast_decl_funcvar($1, $2, NULL, $3, $4); }
            | /* vazio */ { $$ = NULL; }
            ;
 
@@ -99,8 +98,8 @@ ListaParametros:
                ;
 
 ListaParametrosCont:
-                   Tipo IDENTIFIER { $$ = ast_param_listcount(T_INT, $2, NULL); }
-                   | Tipo IDENTIFIER COMMA ListaParametrosCont { $$ = ast_param_listcount(T_INT, $2, $4); }
+                   Tipo IDENTIFIER { $$ = ast_param_listcount($1, $2, NULL); }
+                   | Tipo IDENTIFIER COMMA ListaParametrosCont { $$ = ast_param_listcount($1, $2, $4); }
                    ;
 
 Bloco:
@@ -109,12 +108,12 @@ Bloco:
 
 ListaDeclVar:
             /* vazio */ { $$ = NULL; }
-            | Tipo IDENTIFIER DeclVar SEMICOLON ListaDeclVar { $$ = ast_decl_varlist(T_INT, $2, $3, $5); }
+            | Tipo IDENTIFIER DeclVar SEMICOLON ListaDeclVar { $$ = ast_decl_varlist($1, $2, $3, $5); }
             ;
 
 Tipo:
-    INT 
-    | CAR
+    INT { $$ = T_INT; }
+    | CAR { $$ = T_CAR; }
     ;
 
 ListaComando:
