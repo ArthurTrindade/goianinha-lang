@@ -1,3 +1,6 @@
+%define parse.error verbose
+%locations
+
 %{
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,6 +43,7 @@ program_t *root;
   types_t type;
 }
 
+
 /* declarações de símbolos terminais */
 %token <id> IDENTIFIER STRING
 %token <id> NUMBER
@@ -70,45 +74,45 @@ program_t *root;
 /* regras gramaticais */
 %%
 Programa:
-        DeclFuncVar DeclProg { root = ast_program($1, $2); }
+        DeclFuncVar DeclProg { root = ast_program($1, $2, yylineno); }
         ;
 
 DeclFuncVar:
-           Tipo IDENTIFIER DeclVar SEMICOLON DeclFuncVar { $$ = ast_decl_funcvar($1, $2, $3, NULL, $5); }
-           | Tipo IDENTIFIER DeclFunc DeclFuncVar { $$ = ast_decl_funcvar($1, $2, NULL, $3, $4); }
+           Tipo IDENTIFIER DeclVar SEMICOLON DeclFuncVar { $$ = ast_decl_funcvar($1, $2, $3, NULL, $5, @3.first_line); }
+           | Tipo IDENTIFIER DeclFunc DeclFuncVar { $$ = ast_decl_funcvar($1, $2, NULL, $3, $4, @3.first_line); }
            | /* vazio */ { $$ = NULL; }
            ;
 
 DeclProg:
-        PROGRAMA Bloco { $$ = ast_decl_prog($2); }
+        PROGRAMA Bloco { $$ = ast_decl_prog($2, @2.first_line); }
         ;
 
 DeclVar:
-       COMMA IDENTIFIER DeclVar { $$ = ast_decl_var($2, $3); }
+       COMMA IDENTIFIER DeclVar { $$ = ast_decl_var($2, $3, @3.first_line); }
        | /* vazio */ { $$ = NULL; }
        ;
 
 DeclFunc:
-        LEFT_PAREN ListaParametros RIGHT_PAREN Bloco { $$ = ast_decl_func($2, $4); }
+        LEFT_PAREN ListaParametros RIGHT_PAREN Bloco { $$ = ast_decl_func($2, $4, @2.first_line); }
         ;
 
 ListaParametros:
                /* vazio */ { $$ = NULL;}
-               | ListaParametrosCont { $$ = ast_param_list($1); }
+               | ListaParametrosCont { $$ = ast_param_list($1, yylineno); }
                ;
 
 ListaParametrosCont:
-                   Tipo IDENTIFIER { $$ = ast_param_listcount($1, $2, NULL); }
-                   | Tipo IDENTIFIER COMMA ListaParametrosCont { $$ = ast_param_listcount($1, $2, $4); }
+                   Tipo IDENTIFIER { $$ = ast_param_listcount($1, $2, NULL, yylineno); }
+                   | Tipo IDENTIFIER COMMA ListaParametrosCont { $$ = ast_param_listcount($1, $2, $4, yylineno); }
                    ;
 
 Bloco:
-     LEFT_BRACE ListaDeclVar ListaComando RIGHT_BRACE { $$ = ast_block($2, $3); }
+     LEFT_BRACE ListaDeclVar ListaComando RIGHT_BRACE { $$ = ast_block($2, $3, yylineno); }
      ;
 
 ListaDeclVar:
             /* vazio */ { $$ = NULL; }
-            | Tipo IDENTIFIER DeclVar SEMICOLON ListaDeclVar { $$ = ast_decl_varlist($1, $2, $3, $5); }
+            | Tipo IDENTIFIER DeclVar SEMICOLON ListaDeclVar { $$ = ast_decl_varlist($1, $2, $3, $5, yylineno); }
             ;
 
 Tipo:
@@ -117,83 +121,83 @@ Tipo:
     ;
 
 ListaComando:
-            Comando { $$ = ast_cmd_list($1, NULL); }
-            | Comando ListaComando {  $$ = ast_cmd_list($1, $2); } 
+            Comando { $$ = ast_cmd_list($1, NULL, yylineno); }
+            | Comando ListaComando {  $$ = ast_cmd_list($1, $2, yylineno); } 
             ;
 
 Comando:
        SEMICOLON 
-       | Expr SEMICOLON { $$ = ast_cmd_expr($1); }
-       | RETORNE Expr SEMICOLON { $$ = ast_cmd_expr($2); } 
-       | LEIA IDENTIFIER SEMICOLON { $$ = ast_cmd_leia($2); }
-       | ESCREVA Expr SEMICOLON    { $$ = ast_cmd_escreva($2); }
-       | ESCREVA STRING SEMICOLON  { $$ = ast_cmd_leia($2); }
+       | Expr SEMICOLON { $$ = ast_cmd_expr($1, yylineno); }
+       | RETORNE Expr SEMICOLON { $$ = ast_cmd_expr($2, yylineno); } 
+       | LEIA IDENTIFIER SEMICOLON { $$ = ast_cmd_leia($2, yylineno); }
+       | ESCREVA Expr SEMICOLON    { $$ = ast_cmd_escreva($2, yylineno); }
+       | ESCREVA STRING SEMICOLON  { $$ = ast_cmd_leia($2, yylineno); }
        | NOVALINHA SEMICOLON    
-       | SE LEFT_PAREN Expr RIGHT_PAREN ENTAO Comando { $$ = ast_cmd_if($3, $6); }
-       | SE LEFT_PAREN Expr RIGHT_PAREN ENTAO Comando SENAO Comando { $$ = ast_cmd_if_else($3, $6, $8); }
-       | ENQUANTO LEFT_PAREN Expr RIGHT_PAREN EXECUTE Comando { $$ = ast_cmd_while($3, $6); }
-       | Bloco { $$ = ast_cmd_block($1); }
+       | SE LEFT_PAREN Expr RIGHT_PAREN ENTAO Comando { $$ = ast_cmd_if($3, $6, yylineno); }
+       | SE LEFT_PAREN Expr RIGHT_PAREN ENTAO Comando SENAO Comando { $$ = ast_cmd_if_else($3, $6, $8, yylineno); }
+       | ENQUANTO LEFT_PAREN Expr RIGHT_PAREN EXECUTE Comando { $$ = ast_cmd_while($3, $6, yylineno); }
+       | Bloco { $$ = ast_cmd_block($1, yylineno); }
        ;
 
 Expr:
-    OrExpr  { $$ = ast_expr(T_EXPR, NULL, 0, 0, $1, NULL, NULL); }
-    | IDENTIFIER EQUAL Expr  { $$ = ast_expr(T_IDENTIFIER, $1, 0, 0, $3, NULL, NULL); }
+    OrExpr  { $$ = $1; }
+    | IDENTIFIER EQUAL Expr  { $$ = ast_expr(T_IDENTIFIER, $1, 0, 0, $3, NULL, NULL, yylineno); }
     ;
 
 OrExpr:
-      OrExpr OU AndExpr  { $$ = ast_expr(T_OR, NULL, 0, 0, $1, $3, NULL); }
-      | AndExpr  { $$ = ast_expr(T_EXPR, NULL, 0, 0, $1, NULL, NULL); }
+      OrExpr OU AndExpr  { $$ = ast_expr(T_OR, NULL, 0, 0, $1, $3, NULL, yylineno); }
+      | AndExpr  { $$ = $1; }
       ;
 
 AndExpr:
-       AndExpr E EqExpr { $$ = ast_expr(T_AND, NULL, 0, 0, $1, $3, NULL); }
-       | EqExpr  { $$ = ast_expr(T_EXPR, NULL, 0, 0, $1, NULL, NULL); }
+       AndExpr E EqExpr { $$ = ast_expr(T_AND, NULL, 0, 0, $1, $3, NULL, yylineno); }
+       | EqExpr  { $$ = $1; }
        ;
 
 EqExpr:
-      EqExpr EQUAL_EQUAL DesigExpr { $$ = ast_expr(T_EQUAL, NULL, 0, 0, $1, $3, NULL); }
-      | EqExpr BANG_EQUAL DesigExpr { $$ = ast_expr(T_BANG_EQUAL, NULL, 0, 0, $1, $3, NULL); }
-      | DesigExpr { $$ = ast_expr(T_EXPR, NULL, 0, 0, $1, NULL, NULL); }
+      EqExpr EQUAL_EQUAL DesigExpr { $$ = ast_expr(T_EQUAL, NULL, 0, 0, $1, $3, NULL, yylineno); }
+      | EqExpr BANG_EQUAL DesigExpr { $$ = ast_expr(T_BANG_EQUAL, NULL, 0, 0, $1, $3, NULL, yylineno); }
+      | DesigExpr { $$ = $1; }
       ;
 
 DesigExpr: 
-         DesigExpr LESS AddExpr { $$ = ast_expr(T_LESS, NULL, 0, 0, $1, $3, NULL); }
-         | DesigExpr GREATER AddExpr { $$ = ast_expr(T_GREATER, NULL, 0, 0, $1, $3, NULL); }
-         | DesigExpr GREATER_EQUAL AddExpr { $$ = ast_expr(T_GREATER_EQUAL, NULL, 0, 0, $1, $3, NULL); }
-         | DesigExpr LESS_EQUAL AddExpr { $$ = ast_expr(T_LESS_EQUAL, NULL, 0, 0, $1, $3, NULL); }
-         | AddExpr { $$ = ast_expr(T_EXPR, NULL, 0, 0, $1, NULL, NULL); }
+         DesigExpr LESS AddExpr { $$ = ast_expr(T_LESS, NULL, 0, 0, $1, $3, NULL, yylineno); }
+         | DesigExpr GREATER AddExpr { $$ = ast_expr(T_GREATER, NULL, 0, 0, $1, $3, NULL, yylineno); }
+         | DesigExpr GREATER_EQUAL AddExpr { $$ = ast_expr(T_GREATER_EQUAL, NULL, 0, 0, $1, $3, NULL, yylineno); }
+         | DesigExpr LESS_EQUAL AddExpr { $$ = ast_expr(T_LESS_EQUAL, NULL, 0, 0, $1, $3, NULL, yylineno); }
+         | AddExpr { $$ = ast_expr(T_EXPR, NULL, 0, 0, $1, NULL, NULL, yylineno); }
          ;
 
 AddExpr:
-       AddExpr PLUS MulExpr { $$ = ast_expr(T_PLUS, NULL, 0, 0, $1, $3, NULL); }
-       | AddExpr MINUS MulExpr { $$ = ast_expr(T_MINUS, NULL, 0, 0, $1, $3, NULL); }
-       | MulExpr { $$ = ast_expr(T_EXPR, NULL, 0, 0, $1, NULL, NULL); }
+       AddExpr PLUS MulExpr { $$ = ast_expr(T_PLUS, NULL, 0, 0, $1, $3, NULL, yylineno); }
+       | AddExpr MINUS MulExpr { $$ = ast_expr(T_MINUS, NULL, 0, 0, $1, $3, NULL, yylineno); }
+       | MulExpr { $$ = $1; }
        ;
 
 MulExpr:
-       MulExpr STAR UnExpr { $$ = ast_expr(T_STAR, NULL, 0, 0, $1, $3, NULL); }
-       | MulExpr SLASH UnExpr { $$ = ast_expr(T_SLASH, NULL, 0, 0, $1, $3, NULL); }
-       | UnExpr { $$ = ast_expr(T_EXPR, NULL, 0, 0, $1, NULL, NULL); }
+       MulExpr STAR UnExpr { $$ = ast_expr(T_STAR, NULL, 0, 0, $1, $3, NULL, yylineno); }
+       | MulExpr SLASH UnExpr { $$ = ast_expr(T_SLASH, NULL, 0, 0, $1, $3, NULL, yylineno); }
+       | UnExpr { $$ = $1; }
        ;
 
 UnExpr:
-      MINUS PrimExpr { $$ = ast_expr(T_MINUS, NULL, 0, 0, $2, NULL, NULL); }
-      | BANG PrimExpr { $$ = ast_expr(T_BANG, NULL, 0, 0, $2, NULL, NULL); }
-      | PrimExpr { $$ = ast_expr(T_EXPR, NULL, 0, 0, $1, NULL, NULL); }
+      MINUS PrimExpr { $$ = ast_expr(T_MINUS, NULL, 0, 0, $2, NULL, NULL, yylineno); }
+      | BANG PrimExpr { $$ = ast_expr(T_BANG, NULL, 0, 0, $2, NULL, NULL, yylineno); }
+      | PrimExpr { $$ = $1; }
       ;
 
 PrimExpr:
-        IDENTIFIER LEFT_PAREN ListExpr RIGHT_PAREN { $$ = ast_expr(T_IDENTIFIER, $1, 0, 0, NULL, NULL, $3); }
-        | IDENTIFIER LEFT_PAREN RIGHT_PAREN { $$ = ast_expr(T_IDENTIFIER, $1, 0, 0, NULL, NULL, NULL); }
-        | IDENTIFIER { $$ = ast_expr(T_IDENTIFIER, $1, 0, 0, NULL, NULL, NULL); }
-        | CARCONST   { $$ = ast_expr(T_CAR, NULL, 0, $1, NULL, NULL, NULL); }
-        | INTCONST   { $$ = ast_expr(T_NUMBER, NULL, $1, 0, NULL, NULL, NULL); }
-        | LEFT_PAREN Expr RIGHT_PAREN { $$ = ast_expr(T_EXPR, NULL, 0, 0, $2, NULL, NULL); }
+        IDENTIFIER LEFT_PAREN ListExpr RIGHT_PAREN { $$ = ast_expr(T_IDENTIFIER, $1, 0, 0, NULL, NULL, $3, yylineno); }
+        | IDENTIFIER LEFT_PAREN RIGHT_PAREN { $$ = ast_expr(T_IDENTIFIER, $1, 0, 0, NULL, NULL, NULL, yylineno); }
+        | IDENTIFIER { $$ = ast_expr(T_IDENTIFIER, $1, 0, 0, NULL, NULL, NULL, yylineno); }
+        | CARCONST   { $$ = ast_expr(T_CAR, NULL, 0, $1, NULL, NULL, NULL, yylineno); }
+        | INTCONST   { $$ = ast_expr(T_NUMBER, NULL, $1, 0, NULL, NULL, NULL, yylineno); }
+        | LEFT_PAREN Expr RIGHT_PAREN { $$ = ast_expr(T_EXPR, NULL, 0, 0, $2, NULL, NULL, yylineno); }
         ;
 
 ListExpr:
-        Expr { $$ = ast_expr_list($1, NULL); }
-        | ListExpr COMMA Expr { $$ = ast_expr_list($3, $1); }
+        Expr { $$ = ast_expr_list($1, NULL, yylineno); }
+        | ListExpr COMMA Expr { $$ = ast_expr_list($3, $1, yylineno); }
         ;
 %%
 
@@ -220,4 +224,3 @@ int main(int argc, char **argv) {
 
     return 0;
 }
-

@@ -1,14 +1,11 @@
-int a, b, c;
-int soma(int x, int y) {
-  retorne x + y;
-}
-int mult(int u, int v) {
-  retorne (u * v) + a;
-}
+
+int x;
+int a, b;
+int n, m;
 programa {
-  int a;
-  int b;
-  leia a;
-  leia b;
-  escreva a + b;
+    int a, b, c;
+    int x, y;
+    leia a;
+    escreva a;
+    escreva a + b;
 }

@@ -73,22 +73,25 @@ void walk_expr(expr_t *expr) {
 void walk_cmd(cmd_t *cmd) {
   if (!cmd)
     return;
-
   switch (cmd->kind) {
   case T_LEIA:
+    printf("linha: %d\n", cmd->line);
     printf("Leia variável: %s\n", cmd->id);
     break;
   case T_ESCREVA:
+    printf("linha: %d\n", cmd->line);
     printf("Escreva expressão:\n");
     walk_expr(cmd->expr);
     break;
   case T_SE:
+    printf("linha: %d\n", cmd->line);
     printf("If:\nCondição:\n");
     walk_expr(cmd->expr);
     printf("Bloco:\n");
     walk_cmd(cmd->if_cmd.body);
     break;
   case T_SE_ENTAO:
+    printf("linha: %d\n", cmd->line);
     printf("If-Else:\nCondição:\n");
     walk_expr(cmd->expr);
     printf("Bloco then:\n");
@@ -97,20 +100,24 @@ void walk_cmd(cmd_t *cmd) {
     walk_cmd(cmd->if_cmd.else_body);
     break;
   case T_ENQUANTO:
+    printf("linha: %d\n", cmd->line);
     printf("While:\nCondição:\n");
     walk_expr(cmd->expr);
     printf("Corpo:\n");
     walk_cmd(cmd->while_cmd.body);
     break;
   case T_RETORNE:
+    printf("linha: %d\n", cmd->line);
     printf("Return expressão:\n");
     walk_expr(cmd->expr);
     break;
   case T_BLOCK:
+    printf("linha: %d\n", cmd->line);
     printf("Bloco de comandos:\n");
     walk_block(cmd->blk);
     break;
   case T_STRING:
+    printf("linha: %d\n", cmd->line);
     printf("Escreva String:\n");
     printf("%s\n", cmd->id);
     break;
@@ -126,10 +133,14 @@ void walk_block(block_t *block) {
     return;
 
   printf("Variáveis locais:\n");
-  decl_varlist_t *var = block->var_list;
-  while (var) {
-    printf("- %s\n", var->id);
-    var = var->next;
+  decl_varlist_t *var_list = block->var_list;
+  while (var_list) {
+    if (var_list->var) {
+      printf("Linha decl_var: %d\n", block->var_list->var->line);
+    }
+    printf("Linha decl_var: %d\n", var_list->line);
+    printf("- %s\n", var_list->id);
+    var_list = var_list->next;
   }
 
   printf("Comandos:\n");
@@ -171,12 +182,14 @@ void walk_program(program_t *program) {
   decl_funcvar_t *decl = program->funcvar;
   while (decl) {
     if (decl->decl_var) {
-      printf("Decl var global: %s, ", decl->id);
+      printf("Linha decl vars: %d\n", decl->line);
+      printf("Decl vars global: %s, ", decl->id);
       print_decl_list(decl->decl_var);
       printf("\n");
     }
 
     if (decl->decl_func == NULL && decl->decl_var == NULL) {
+      printf("Linha decl var: %d\n", decl->line);
       printf("Decl var global: %s \n", decl->id);
     }
 

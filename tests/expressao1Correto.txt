@@ -1,7 +1,9 @@
 int x, y;
 int sum;
 int soma(int n, int m) {
-    retorne n + m;
+    int a;
+    a = n;
+    retorne a + m;
 }
 int mult(int u, int v) {
     retorne u + v;

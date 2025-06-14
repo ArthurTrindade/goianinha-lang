@@ -8,6 +8,8 @@
 #include "../include/ast.h"
 #include "goianinha.tab.h"
 
+int line;
+
 struct keyword_map {
     const char* keyword;
     int token;
@@ -98,7 +100,7 @@ DIGIT   [0-9]+
 "<="     { return LESS_EQUAL; }
 "!"      { return BANG; }
 
-\"([^\\\n"]|\\.)*\n      {
+\"[^\"]*\"     {
     fprintf(stderr, "Erro: CADEIA DE CARACTERES OCUPA MAIS DE UMA LINHA %d\n", yylineno);
     exit(EXIT_FAILURE);
 }
