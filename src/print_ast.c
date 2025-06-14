@@ -165,9 +165,7 @@ void print_params(param_listcount_t *params) {
 
   param_listcount_t *paramlist = params;
 
-  printf("Linha: %d\n", paramlist->line);
-  printf("Parâmetros: ");
-  printf("%s\n", paramlist->id);
+  printf("%s, ", paramlist->id);
 
   print_params(params->next);
 }
@@ -197,12 +195,14 @@ void walk_program(program_t *program) {
     }
 
     if (decl->decl_func == NULL && decl->decl_var == NULL) {
-      printf("Decl var global: %s, Linha:\n", decl->id);
+      printf("Decl var global: %s, Linha: %d\n", decl->id, decl->line);
     }
 
     if (decl->decl_func) {
       printf("Decl função: %s\n", decl->id);
+      printf("Parâmetros: ");
       print_params(decl->decl_func->params->param_count);
+      printf("Linha: %d\n\n", decl->decl_func->params->line);
       walk_block(decl->decl_func->block);
     }
 

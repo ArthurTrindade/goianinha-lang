@@ -1,5 +1,3 @@
-%define parse.error verbose
-%locations
 
 %{
 #include <stdio.h>
@@ -78,7 +76,9 @@ Programa:
         ;
 
 DeclFuncVar:
-           Tipo IDENTIFIER DeclVar SEMICOLON DeclFuncVar { $$ = ast_decl_funcvar($1, $2, $3, NULL, $5, yylineno); }
+           Tipo IDENTIFIER DeclVar SEMICOLON DeclFuncVar {  
+            decl_var_t *declv = ast_decl_var(NULL, NULL, yylineno);
+            $$ = ast_decl_funcvar($1, $2, $3, NULL, $5, yylineno); }
            | Tipo IDENTIFIER DeclFunc DeclFuncVar { $$ = ast_decl_funcvar($1, $2, NULL, $3, $4, yylineno); }
            | /* vazio */ { $$ = NULL; }
            ;
@@ -89,7 +89,7 @@ DeclProg:
 
 DeclVar:
        COMMA IDENTIFIER DeclVar { $$ = ast_decl_var($2, $3, yylineno); }
-       | /* vazio */ { $$ = NULL; }
+       | /* vazio */ { $$ = ast_decl_var(NULL, NULL, yylineno); }
        ;
 
 DeclFunc:

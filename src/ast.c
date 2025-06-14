@@ -16,10 +16,12 @@ program_t *ast_program(decl_funcvar_t *funcvar, decl_prog_t *decl_prog, int line
   return p;
 }
 
+
 decl_funcvar_t *ast_decl_funcvar(types_t type, char *id, decl_var_t *decl_var,
                                  decl_func_t *decl_func, decl_funcvar_t *next, int line) {
 
   decl_funcvar_t *df = (decl_funcvar_t *)malloc(sizeof(decl_funcvar_t));
+
 
   if (df) {
     df->type = type;
