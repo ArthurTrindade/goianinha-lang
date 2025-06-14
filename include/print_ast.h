@@ -53,4 +53,8 @@ void walk_cmd(cmd_t *cmd);
 
 void walk_expr(expr_t *expr);
 
+void print_decl_list(decl_var_t *declv);
+
+void print_params(param_listcount_t *params);
+
 #endif

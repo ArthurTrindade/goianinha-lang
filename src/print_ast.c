@@ -63,6 +63,7 @@ void walk_expr(expr_t *expr) {
     break;
   case T_EXPR:
     walk_expr(expr->left);
+    break;
   default:
     /* printf("Expr tipo %s não tratado\n", enum_to_string(expr_map,
      * expr->kind)); */
@@ -135,11 +136,17 @@ void walk_block(block_t *block) {
   printf("Variáveis locais:\n");
   decl_varlist_t *var_list = block->var_list;
   while (var_list) {
+
     if (var_list->var) {
-      printf("Linha decl_var: %d\n", block->var_list->var->line);
+      printf("- %s, ", var_list->id);
+      print_decl_list(var_list->var);
+      printf("Linha: %d\n", var_list->var->line);
     }
-    printf("Linha decl_var: %d\n", var_list->line);
-    printf("- %s\n", var_list->id);
+
+    if (var_list->var == NULL) {
+      printf("- %s\n", var_list->id);
+    }
+
     var_list = var_list->next;
   }
 
@@ -158,6 +165,7 @@ void print_params(param_listcount_t *params) {
 
   param_listcount_t *paramlist = params;
 
+  printf("Linha: %d\n", paramlist->line);
   printf("Parâmetros: ");
   printf("%s\n", paramlist->id);
 
@@ -182,15 +190,14 @@ void walk_program(program_t *program) {
   decl_funcvar_t *decl = program->funcvar;
   while (decl) {
     if (decl->decl_var) {
-      printf("Linha decl vars: %d\n", decl->line);
       printf("Decl vars global: %s, ", decl->id);
       print_decl_list(decl->decl_var);
+      printf("Linha: %d\n", decl->decl_var->line);
       printf("\n");
     }
 
     if (decl->decl_func == NULL && decl->decl_var == NULL) {
-      printf("Linha decl var: %d\n", decl->line);
-      printf("Decl var global: %s \n", decl->id);
+      printf("Decl var global: %s, Linha:\n", decl->id);
     }
 
     if (decl->decl_func) {
@@ -203,7 +210,7 @@ void walk_program(program_t *program) {
   }
 
   if (program->prog) {
-    printf("\nBloco principal do programa:\n");
+    printf("Bloco principal do programa:\n");
     walk_block(program->prog->block);
   }
 }

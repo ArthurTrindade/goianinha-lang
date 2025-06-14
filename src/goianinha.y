@@ -78,22 +78,22 @@ Programa:
         ;
 
 DeclFuncVar:
-           Tipo IDENTIFIER DeclVar SEMICOLON DeclFuncVar { $$ = ast_decl_funcvar($1, $2, $3, NULL, $5, @3.first_line); }
-           | Tipo IDENTIFIER DeclFunc DeclFuncVar { $$ = ast_decl_funcvar($1, $2, NULL, $3, $4, @3.first_line); }
+           Tipo IDENTIFIER DeclVar SEMICOLON DeclFuncVar { $$ = ast_decl_funcvar($1, $2, $3, NULL, $5, yylineno); }
+           | Tipo IDENTIFIER DeclFunc DeclFuncVar { $$ = ast_decl_funcvar($1, $2, NULL, $3, $4, yylineno); }
            | /* vazio */ { $$ = NULL; }
            ;
 
 DeclProg:
-        PROGRAMA Bloco { $$ = ast_decl_prog($2, @2.first_line); }
+        PROGRAMA Bloco { $$ = ast_decl_prog($2, yylineno); }
         ;
 
 DeclVar:
-       COMMA IDENTIFIER DeclVar { $$ = ast_decl_var($2, $3, @3.first_line); }
+       COMMA IDENTIFIER DeclVar { $$ = ast_decl_var($2, $3, yylineno); }
        | /* vazio */ { $$ = NULL; }
        ;
 
 DeclFunc:
-        LEFT_PAREN ListaParametros RIGHT_PAREN Bloco { $$ = ast_decl_func($2, $4, @2.first_line); }
+        LEFT_PAREN ListaParametros RIGHT_PAREN Bloco { $$ = ast_decl_func($2, $4, yylineno); }
         ;
 
 ListaParametros:
