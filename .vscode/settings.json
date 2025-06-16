@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "ast.h": "c",
-        "symbol_table.h": "c"
+        "symbol_table.h": "c",
+        "print_ast.h": "c"
     }
 }

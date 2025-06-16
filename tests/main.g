@@ -1,11 +1,11 @@
 int x;
 int a, b;
 int n, m;
-int soma(int i) {
-    int o;
-    int m, l;
+int i;
+int soma(int i, int j) {
     escreva i + j;
 }
+int t;
 programa {
     int n;
     int a, b, c;
@@ -13,4 +13,9 @@ programa {
     leia a;
     escreva a;
     escreva a + b;
+    c = soma(1, 2);
+    {
+        int n;
+        n = 100;
+    }
 }

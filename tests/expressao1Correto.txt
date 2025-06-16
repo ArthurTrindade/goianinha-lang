@@ -2,7 +2,6 @@ int x, y;
 int sum;
 int soma(int n, int m) {
     int a;
-    a = n;
     retorne a + m;
 }
 int mult(int u, int v) {
@@ -12,7 +11,9 @@ int mean;
 programa {
     int x;
     int y;
+    int s;
     leia x;
+    s = soma(1, 2);
     leia y;
     escreva x + y;
 }

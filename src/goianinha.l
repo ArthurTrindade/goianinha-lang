@@ -8,8 +8,6 @@
 #include "../include/ast.h"
 #include "goianinha.tab.h"
 
-int line;
-
 struct keyword_map {
     const char* keyword;
     int token;

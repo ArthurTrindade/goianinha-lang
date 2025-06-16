@@ -25,6 +25,7 @@ void walk_expr(expr_t *expr) {
     break;
   case T_IDENTIFIER:
     printf("ID: %s\n", expr->id);
+    walk_expr(expr->left);
     break;
   case T_PLUS:
     printf("Expr: (\n");

@@ -76,9 +76,7 @@ Programa:
         ;
 
 DeclFuncVar:
-           Tipo IDENTIFIER DeclVar SEMICOLON DeclFuncVar {  
-            decl_var_t *declv = ast_decl_var(NULL, NULL, yylineno);
-            $$ = ast_decl_funcvar($1, $2, $3, NULL, $5, yylineno); }
+           Tipo IDENTIFIER DeclVar SEMICOLON DeclFuncVar {  $$ = ast_decl_funcvar($1, $2, $3, NULL, $5, yylineno); }
            | Tipo IDENTIFIER DeclFunc DeclFuncVar { $$ = ast_decl_funcvar($1, $2, NULL, $3, $4, yylineno); }
            | /* vazio */ { $$ = NULL; }
            ;
@@ -128,7 +126,7 @@ ListaComando:
 Comando:
        SEMICOLON 
        | Expr SEMICOLON { $$ = ast_cmd_expr($1, yylineno); }
-       | RETORNE Expr SEMICOLON { $$ = ast_cmd_expr($2, yylineno); } 
+       | RETORNE Expr SEMICOLON { $$ = ast_cmd_ret($2, yylineno); } 
        | LEIA IDENTIFIER SEMICOLON { $$ = ast_cmd_leia($2, yylineno); }
        | ESCREVA Expr SEMICOLON    { $$ = ast_cmd_escreva($2, yylineno); }
        | ESCREVA STRING SEMICOLON  { $$ = ast_cmd_leia($2, yylineno); }

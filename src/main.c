@@ -8,6 +8,7 @@ extern int yylineno;
 extern char *yytext;
 extern int yylex(void);
 
+
 int main(int argc, char *argv[]) {
   FILE *input = NULL;
   FILE *input2 = NULL;
