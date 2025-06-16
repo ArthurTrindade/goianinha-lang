@@ -74,18 +74,8 @@ typedef struct cmd {
   char *id;
   struct expr *expr;
   struct block *blk;
-  union {
-    struct {
-      struct expr *cond;
-      struct cmd *body;
-      struct cmd *else_body;
-    } if_cmd;
-
-    struct {
-      struct expr *cond;
-      struct cmd *body;
-    } while_cmd;
-  };
+  struct cmd *body;
+  struct cmd *else_body;
 } cmd_t;
 
 typedef struct expr {

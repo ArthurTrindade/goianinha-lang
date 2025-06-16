@@ -139,7 +139,7 @@ Comando:
 
 Expr:
     OrExpr  { $$ = $1; }
-    | IDENTIFIER EQUAL Expr  { $$ = ast_expr(T_IDENTIFIER, $1, 0, 0, $3, NULL, NULL, yylineno); }
+    | IDENTIFIER EQUAL Expr  { $$ = ast_expr(T_EQUAL, $1, 0, 0, $3, NULL, NULL, yylineno); }
     ;
 
 OrExpr:
@@ -153,7 +153,7 @@ AndExpr:
        ;
 
 EqExpr:
-      EqExpr EQUAL_EQUAL DesigExpr { $$ = ast_expr(T_EQUAL, NULL, 0, 0, $1, $3, NULL, yylineno); }
+      EqExpr EQUAL_EQUAL DesigExpr { $$ = ast_expr(T_EQUAL_EQUAL, NULL, 0, 0, $1, $3, NULL, yylineno); }
       | EqExpr BANG_EQUAL DesigExpr { $$ = ast_expr(T_BANG_EQUAL, NULL, 0, 0, $1, $3, NULL, yylineno); }
       | DesigExpr { $$ = $1; }
       ;
@@ -163,7 +163,7 @@ DesigExpr:
          | DesigExpr GREATER AddExpr { $$ = ast_expr(T_GREATER, NULL, 0, 0, $1, $3, NULL, yylineno); }
          | DesigExpr GREATER_EQUAL AddExpr { $$ = ast_expr(T_GREATER_EQUAL, NULL, 0, 0, $1, $3, NULL, yylineno); }
          | DesigExpr LESS_EQUAL AddExpr { $$ = ast_expr(T_LESS_EQUAL, NULL, 0, 0, $1, $3, NULL, yylineno); }
-         | AddExpr { $$ = ast_expr(T_EXPR, NULL, 0, 0, $1, NULL, NULL, yylineno); }
+         | AddExpr { $$ = $1; }
          ;
 
 AddExpr:

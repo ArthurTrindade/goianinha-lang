@@ -17,6 +17,18 @@ int env_add(env_t e, scope_t h) { return list_insert_begin(e, h); }
 
 int env_delete(env_t e) { return list_remove_begin(e); }
 
+list_symbol_t list_symbol_new() {
+  list_symbol_t l = (list_symbol_t)malloc(sizeof(list_t));
+  list_init(l, (void *)symbol_free);
+  return l;
+}
+
+void list_symbol_free(list_symbol_t l) { list_destroy(l); }
+
+int list_symbol_add(list_symbol_t l, symbol_t *s) {
+  return list_insert_end(l, s);
+}
+
 scope_t symboltable_new() {
   return hashmap_new(sizeof(symbol_t), 0, 0, 0, symbol_hash, symbol_compare,
                      NULL, NULL);
@@ -71,14 +83,13 @@ symbol_t *symbol_var(char *l, types_t dt, int pos, int line) {
     s->symbol_type = T_VAR;
     s->data_type = dt;
     s->pos = pos;
-    s->func = NULL;
     s->line = line;
   }
 
   return s;
 }
 
-symbol_t *symbol_param(char *l, types_t dt, int pos, scope_t func, int line) {
+symbol_t *symbol_param(char *l, types_t dt, int pos, int line) {
   symbol_t *s = (symbol_t *)malloc(sizeof(symbol_t));
 
   if (s) {
@@ -86,7 +97,6 @@ symbol_t *symbol_param(char *l, types_t dt, int pos, scope_t func, int line) {
     s->symbol_type = T_PARAM;
     s->data_type = dt;
     s->pos = pos;
-    s->func = func;
     s->line = line;
   }
 
@@ -94,7 +104,7 @@ symbol_t *symbol_param(char *l, types_t dt, int pos, scope_t func, int line) {
 }
 
 symbol_t *symbol_function(char *l, types_t return_type, int num_param,
-                          int line) {
+                          list_symbol_t list_symbol, int line) {
   symbol_t *s = (symbol_t *)malloc(sizeof(symbol_t));
 
   if (s) {
@@ -102,7 +112,7 @@ symbol_t *symbol_function(char *l, types_t return_type, int num_param,
     s->symbol_type = T_PARAM;
     s->data_type = return_type;
     s->pos = num_param;
-    s->func = NULL;
+    s->list_symbol = list_symbol;
     s->line = line;
   }
 

@@ -9,6 +9,7 @@
 
 typedef list_t *env_t;
 typedef struct hashmap *scope_t;
+typedef list_t *list_symbol_t;
 
 typedef struct symbol_ {
   char *lexeme;
@@ -16,7 +17,7 @@ typedef struct symbol_ {
   types_t data_type;
   int pos;
   int line;
-  scope_t func;
+  list_symbol_t list_symbol;
 } symbol_t;
 
 /*
@@ -55,6 +56,8 @@ uint64_t symbol_hash(const void *item, uint64_t seed0, uint64_t seed1);
  * */
 scope_t symboltable_new();
 
+void symbol_free(symbol_t *s);
+
 /*
  * Adiciona o símbolo s na tabela de símbolos h
  * */
@@ -74,10 +77,9 @@ symbol_t *symbol_search(env_t env, char *lexeme);
 
 symbol_t *symbol_var(char *l, types_t dt, int pos, int line);
 
-symbol_t *symbol_param(char *l, types_t dt, int pos, scope_t func, int line);
+symbol_t *symbol_param(char *l, types_t dt, int pos, int line);
 
-symbol_t *symbol_function(char *l, types_t return_type, int num_param,
-                          int line);
+symbol_t *symbol_function(char *l, types_t return_type, int num_param, list_symbol_t list_symbol, int line);
 
 /*
  * Imprime as informações do símbolo na saída padrão

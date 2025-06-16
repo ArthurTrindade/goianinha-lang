@@ -55,7 +55,45 @@ void walk_expr(expr_t *expr) {
     walk_expr(expr->right);
     printf(")\n");
     break;
+  case T_EQUAL_EQUAL:
+    printf("Expr: (\n");
+    walk_expr(expr->left);
+    printf(" == ");
+    walk_expr(expr->right);
+    printf(")\n");
+    break;
   case T_EQUAL:
+    printf("Expr: (\n");
+    printf("%s\n", expr->id);
+    printf(" = ");
+    walk_expr(expr->left);
+    printf(")\n");
+    break;
+
+  case T_GREATER:
+    printf("Expr: (\n");
+    walk_expr(expr->left);
+    printf(" > ");
+    walk_expr(expr->right);
+    printf(")\n");
+    break;
+  case T_GREATER_EQUAL:
+    printf("Expr: (\n");
+    walk_expr(expr->left);
+    printf(" >= ");
+    walk_expr(expr->right);
+    printf(")\n");
+    break;
+
+  case T_LESS:
+    printf("Expr: (\n");
+    walk_expr(expr->left);
+    printf(" == ");
+    walk_expr(expr->right);
+    printf(")\n");
+    break;
+
+  case T_LESS_EQUAL:
     printf("Expr: (\n");
     walk_expr(expr->left);
     printf(" == ");
@@ -90,23 +128,23 @@ void walk_cmd(cmd_t *cmd) {
     printf("If:\nCondição:\n");
     walk_expr(cmd->expr);
     printf("Bloco:\n");
-    walk_cmd(cmd->if_cmd.body);
+    walk_cmd(cmd->body);
     break;
   case T_SE_ENTAO:
     printf("linha: %d\n", cmd->line);
     printf("If-Else:\nCondição:\n");
     walk_expr(cmd->expr);
     printf("Bloco then:\n");
-    walk_cmd(cmd->if_cmd.body);
+    walk_cmd(cmd->body);
     printf("Bloco else:\n");
-    walk_cmd(cmd->if_cmd.else_body);
+    walk_cmd(cmd->else_body);
     break;
   case T_ENQUANTO:
     printf("linha: %d\n", cmd->line);
     printf("While:\nCondição:\n");
     walk_expr(cmd->expr);
     printf("Corpo:\n");
-    walk_cmd(cmd->while_cmd.body);
+    walk_cmd(cmd->body);
     break;
   case T_RETORNE:
     printf("linha: %d\n", cmd->line);

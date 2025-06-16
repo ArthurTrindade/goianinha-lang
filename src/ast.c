@@ -201,8 +201,8 @@ cmd_t *ast_cmd_while(expr_t *expr, cmd_t *body, int line) {
 
   if (cmd) {
     cmd->kind = T_ENQUANTO;
-    cmd->while_cmd.cond = expr;
-    cmd->while_cmd.body = body;
+    cmd->expr = expr;
+    cmd->body = body;
     cmd->line = line;
   }
 
@@ -210,17 +210,17 @@ cmd_t *ast_cmd_while(expr_t *expr, cmd_t *body, int line) {
 }
 
 cmd_t *ast_cmd_if(expr_t *expr, cmd_t *body, int line) {
-  cmd_t *if_cmd = (cmd_t *)malloc(sizeof(cmd_t));
+  cmd_t *cmd = (cmd_t *)malloc(sizeof(cmd_t));
 
-  if (if_cmd) {
-    if_cmd->kind = T_SE;
-    if_cmd->if_cmd.cond = expr;
-    if_cmd->if_cmd.body = body;
-    if_cmd->if_cmd.else_body = NULL;
-    if_cmd->line = line;
+  if (cmd) {
+    cmd->kind = T_SE;
+    cmd->expr = expr;
+    cmd->body = body;
+    cmd->else_body = NULL;
+    cmd->line = line;
   }
 
-  return if_cmd;
+  return cmd;
 }
 
 cmd_t *ast_cmd_if_else(expr_t *expr, cmd_t *body, cmd_t *else_body, int line) {
@@ -228,9 +228,9 @@ cmd_t *ast_cmd_if_else(expr_t *expr, cmd_t *body, cmd_t *else_body, int line) {
 
   if (if_cmd) {
     if_cmd->kind = T_SE_ENTAO;
-    if_cmd->if_cmd.cond = expr;
-    if_cmd->if_cmd.body = body;
-    if_cmd->if_cmd.else_body = else_body;
+    if_cmd->expr = expr;
+    if_cmd->body = body;
+    if_cmd->else_body = else_body;
     if_cmd->line = line;
   }
 
