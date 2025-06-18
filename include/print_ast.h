@@ -45,13 +45,13 @@ typedef struct {
 
 const char *enum_to_string(enum_string_map_t *map, int value);
 
-void walk_program(program_t *program);
+void print_program(program_t *program);
 
-void walk_block(block_t *block);
+void print_block(block_t *block);
 
-void walk_cmd(cmd_t *cmd);
+void print_cmd(cmd_t *cmd);
 
-void walk_expr(expr_t *expr);
+void print_expr(expr_t *expr);
 
 void print_decl_list(decl_var_t *declv);
 

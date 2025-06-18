@@ -80,8 +80,8 @@ typedef struct cmd {
 
 typedef struct expr {
   int line;
-  types_t kind;
-  const char *id;
+  expr_e kind;
+  char *id;
   int integer_literal;
   char char_literal;
   struct expr *left;

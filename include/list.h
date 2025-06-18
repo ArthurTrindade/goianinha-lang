@@ -63,5 +63,6 @@ int list_remove_last(list_t *list);
 #define list_data(element) ((element)->data)
 #define list_next(element) ((element)->next)
 #define list_prev(element) ((element)->prev)
+#define list_top(list) (((list)->head)->data)
 
 #endif // !list_H

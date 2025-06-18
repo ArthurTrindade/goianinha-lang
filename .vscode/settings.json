@@ -2,6 +2,8 @@
     "files.associations": {
         "ast.h": "c",
         "symbol_table.h": "c",
-        "print_ast.h": "c"
+        "print_ast.h": "c",
+        "goianinha.tab.h": "c",
+        "list.h": "c"
     }
 }

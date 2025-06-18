@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../include/ast.h"
 #include "../include/symbol_table.h"
 #include "../include/types.h"
 
@@ -84,6 +85,7 @@ symbol_t *symbol_var(char *l, types_t dt, int pos, int line) {
     s->data_type = dt;
     s->pos = pos;
     s->line = line;
+    s->params = NULL;
   }
 
   return s;
@@ -98,6 +100,7 @@ symbol_t *symbol_param(char *l, types_t dt, int pos, int line) {
     s->data_type = dt;
     s->pos = pos;
     s->line = line;
+    s->params = NULL;
   }
 
   return s;
@@ -105,14 +108,15 @@ symbol_t *symbol_param(char *l, types_t dt, int pos, int line) {
 
 symbol_t *symbol_function(char *l, types_t return_type, int num_param,
                           list_symbol_t list_symbol, int line) {
+
   symbol_t *s = (symbol_t *)malloc(sizeof(symbol_t));
 
   if (s) {
     s->lexeme = l;
-    s->symbol_type = T_PARAM;
+    s->symbol_type = T_FUNCTION;
     s->data_type = return_type;
     s->pos = num_param;
-    s->list_symbol = list_symbol;
+    s->params = list_symbol;
     s->line = line;
   }
 
@@ -124,7 +128,17 @@ void symbol_print(symbol_t *s) {
     printf("Símbolo nulo\n");
     return;
   }
-  printf("Lexeme: %s, Type: %d\n", s->lexeme, s->symbol_type);
+  printf("\nLexeme: %s, Type: %d\n", s->lexeme, s->symbol_type);
+  printf("Linha: %d, Pos: %d\n", s->line, s->pos);
+  printf("Symbol type: %d\n", s->symbol_type);
+}
+
+void decl_resolve(env_t e, decl_funcvar_t *decl) {
+  if (decl)
+    return;
+
+  types_t type = e->size > 1 ? T_LOCAL : T_GLOBAL;
+  
 }
 
 /**/

@@ -17,7 +17,7 @@ typedef struct symbol_ {
   types_t data_type;
   int pos;
   int line;
-  list_symbol_t list_symbol;
+  list_symbol_t params;
 } symbol_t;
 
 /*
@@ -85,5 +85,11 @@ symbol_t *symbol_function(char *l, types_t return_type, int num_param, list_symb
  * Imprime as informações do símbolo na saída padrão
  * */
 void symbol_print(symbol_t *s);
+
+int list_symbol_add(list_symbol_t l, symbol_t *s);
+
+list_symbol_t list_symbol_new();
+
+void list_symbol_free(list_symbol_t l);
 
 #endif

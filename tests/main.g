@@ -1,6 +1,8 @@
+int x, a;
+int soma(int i, int j) {
+    retorne i + j;
+}
 programa {
-    int n;
-    enquanto (a > 10) execute {
-        escreva a;
-    }
+    int s;
+    escreva 10;
 }
