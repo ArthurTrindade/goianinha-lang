@@ -17,52 +17,52 @@ void print_expr(expr_t *expr) {
     return;
 
   switch (expr->kind) {
-  case T_NUMBER:
+  case EXPR_INT:
     printf("Integer: %d\n", expr->integer_literal);
     break;
-  case T_CAR:
+  case EXPR_CHAR:
     printf("Char: %c\n", expr->char_literal);
     break;
-  case T_IDENTIFIER:
+  case EXPR_ID:
     printf("ID: %s\n", expr->id);
     print_expr(expr->left);
     break;
-  case T_PLUS:
+  case EXPR_ADD:
     printf("Expr: (\n");
     print_expr(expr->left);
     printf(" + ");
     print_expr(expr->right);
     printf(")\n");
     break;
-  case T_MINUS:
+  case EXPR_SUB:
     printf("Expr: (\n");
     print_expr(expr->left);
     printf(" - ");
     print_expr(expr->right);
     printf(")\n");
     break;
-  case T_STAR:
+  case EXPR_MUL:
     printf("Expr: (\n");
     print_expr(expr->left);
     printf(" * ");
     print_expr(expr->right);
     printf(")\n");
     break;
-  case T_SLASH:
+  case EXPR_DIV:
     printf("Expr: (\n");
     print_expr(expr->left);
     printf(" / ");
     print_expr(expr->right);
     printf(")\n");
     break;
-  case T_EQUAL_EQUAL:
+  case EXPR_EQUAL:
     printf("Expr: (\n");
     print_expr(expr->left);
     printf(" == ");
     print_expr(expr->right);
     printf(")\n");
     break;
-  case T_EQUAL:
+  case EXPR_ASSIGN:
     printf("Expr: (\n");
     printf("%s\n", expr->id);
     printf(" = ");
@@ -70,14 +70,14 @@ void print_expr(expr_t *expr) {
     printf(")\n");
     break;
 
-  case T_GREATER:
+  case EXPR_GREATER:
     printf("Expr: (\n");
     print_expr(expr->left);
     printf(" > ");
     print_expr(expr->right);
     printf(")\n");
     break;
-  case T_GREATER_EQUAL:
+  case EXPR_GREATER_EQUAL:
     printf("Expr: (\n");
     print_expr(expr->left);
     printf(" >= ");
@@ -85,7 +85,7 @@ void print_expr(expr_t *expr) {
     printf(")\n");
     break;
 
-  case T_LESS:
+  case EXPR_LESS:
     printf("Expr: (\n");
     print_expr(expr->left);
     printf(" == ");
@@ -93,15 +93,12 @@ void print_expr(expr_t *expr) {
     printf(")\n");
     break;
 
-  case T_LESS_EQUAL:
+  case EXPR_LESS_EQUAL:
     printf("Expr: (\n");
     print_expr(expr->left);
     printf(" == ");
     print_expr(expr->right);
     printf(")\n");
-    break;
-  case T_EXPR:
-    print_expr(expr->left);
     break;
   default:
     /* printf("Expr tipo %s não tratado\n", enum_to_string(expr_map,
@@ -114,23 +111,23 @@ void print_cmd(cmd_t *cmd) {
   if (!cmd)
     return;
   switch (cmd->kind) {
-  case T_LEIA:
+  case CMD_LEIA:
     printf("linha: %d\n", cmd->line);
     printf("Leia variável: %s\n", cmd->id);
     break;
-  case T_ESCREVA:
+  case CMD_ESCREVA:
     printf("linha: %d\n", cmd->line);
     printf("Escreva expressão:\n");
     print_expr(cmd->expr);
     break;
-  case T_SE:
+  case CMD_IF:
     printf("linha: %d\n", cmd->line);
     printf("If:\nCondição:\n");
     print_expr(cmd->expr);
     printf("Bloco:\n");
     print_cmd(cmd->body);
     break;
-  case T_SE_ENTAO:
+  case CMD_IF_ELSE:
     printf("linha: %d\n", cmd->line);
     printf("If-Else:\nCondição:\n");
     print_expr(cmd->expr);
@@ -139,27 +136,22 @@ void print_cmd(cmd_t *cmd) {
     printf("Bloco else:\n");
     print_cmd(cmd->else_body);
     break;
-  case T_ENQUANTO:
+  case CMD_WHILE:
     printf("linha: %d\n", cmd->line);
     printf("While:\nCondição:\n");
     print_expr(cmd->expr);
     printf("Corpo:\n");
     print_cmd(cmd->body);
     break;
-  case T_RETORNE:
+  case CMD_RETORNE:
     printf("linha: %d\n", cmd->line);
     printf("Return expressão:\n");
     print_expr(cmd->expr);
     break;
-  case T_BLOCK:
+  case CMD_BLOCK:
     printf("linha: %d\n", cmd->line);
     printf("Bloco de comandos:\n");
     print_block(cmd->blk);
-    break;
-  case T_STRING:
-    printf("linha: %d\n", cmd->line);
-    printf("Escreva String:\n");
-    printf("%s\n", cmd->id);
     break;
   default:
     /* printf("Comando tipo %s não tratado\n", */

@@ -16,7 +16,9 @@ typedef enum {
   CMD_RETURN,
   CMD_BLOCK,
   CMD_LEIA,
-  CMD_ESCREVA
+  CMD_ESCREVA,
+  CMD_RETORNE,
+  CMD_STRING
 } cmd_e;
 
 typedef enum {
@@ -25,12 +27,21 @@ typedef enum {
   EXPR_SUB,
   EXPR_MUL,
   EXPR_DIV,
-  EXPR_NAME,
+  EXPR_EQUAL,
+  EXPR_NOT,
+  EXPR_LESS,          
+  EXPR_OR,
+  EXPR_AND,
+  EXPR_DIFF,
+  EXPR_LESS_EQUAL,    
+  EXPR_GREATER,       
+  EXPR_GREATER_EQUAL, 
   EXPR_ASSIGN,
   EXPR_BIN_OP,
   EXPR_UN_OP,
-  EXPR_INTEGER_LITERAL,
-  EXPR_CHAR_LITERAL,
+  EXPR_MINUS,
+  EXPR_INT,
+  EXPR_CHAR,
   EXPR_UNKNOWN
 } expr_e;
 

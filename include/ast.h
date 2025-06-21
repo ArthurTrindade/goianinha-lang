@@ -69,7 +69,7 @@ typedef struct cmd_list {
 } cmd_list_t;
 
 typedef struct cmd {
-  types_t kind;
+  cmd_e kind;
   int line;
   char *id;
   struct expr *expr;
@@ -119,7 +119,7 @@ decl_varlist_t *ast_decl_varlist(types_t t, char *id, decl_var_t *var,
 
 cmd_list_t *ast_cmd_list(cmd_t *cmd, cmd_list_t *next, int line);
 
-expr_t *ast_expr(types_t e, char *id, int const_int, const char const_char,
+expr_t *ast_expr(expr_e e, char *id, int const_int, const char const_char,
                  expr_t *l, expr_t *r, expr_list_t *elist, int line);
 
 expr_list_t *ast_expr_list(expr_t *expr, expr_list_t *next, int line);

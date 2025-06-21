@@ -140,7 +140,7 @@ cmd_t *ast_cmd_ret(expr_t *expr, int line) {
   cmd_t *cmd = (cmd_t *)malloc(sizeof(cmd_t));
 
   if (cmd) {
-    cmd->kind = T_RETORNE;
+    cmd->kind = CMD_RETORNE;
     cmd->expr = expr;
     cmd->line = line;
   }
@@ -152,7 +152,7 @@ cmd_t *ast_cmd_leia(char *id, int line) {
   cmd_t *cmd = (cmd_t *)malloc(sizeof(cmd_t));
 
   if (cmd) {
-    cmd->kind = T_LEIA;
+    cmd->kind = CMD_LEIA;
     cmd->id = id ? strdup(id) : NULL;
     cmd->line = line;
   }
@@ -164,7 +164,7 @@ cmd_t *ast_cmd_escreva(expr_t *expr, int line) {
   cmd_t *cmd = (cmd_t *)malloc(sizeof(cmd_t));
 
   if (cmd) {
-    cmd->kind = T_ESCREVA;
+    cmd->kind = CMD_ESCREVA;
     cmd->expr = expr;
     cmd->line = line;
   }
@@ -176,7 +176,7 @@ cmd_t *ast_cmd_expr(expr_t *expr, int line) {
   cmd_t *cmd = (cmd_t *)malloc(sizeof(cmd_t));
 
   if (cmd) {
-    cmd->kind = T_EXPR;
+    cmd->kind = CMD_EXPR;
     cmd->expr = expr;
     cmd->line = line;
   }
@@ -188,7 +188,7 @@ cmd_t *ast_cmd_block(block_t *blk, int line) {
   cmd_t *cmd = (cmd_t *)malloc(sizeof(cmd_t));
 
   if (cmd) {
-    cmd->kind = T_BLOCK;
+    cmd->kind = CMD_BLOCK;
     cmd->blk = blk;
     cmd->line = line;
   }
@@ -200,7 +200,7 @@ cmd_t *ast_cmd_while(expr_t *expr, cmd_t *body, int line) {
   cmd_t *cmd = (cmd_t *)malloc(sizeof(cmd_t));
 
   if (cmd) {
-    cmd->kind = T_ENQUANTO;
+    cmd->kind = CMD_WHILE;
     cmd->expr = expr;
     cmd->body = body;
     cmd->line = line;
@@ -213,7 +213,7 @@ cmd_t *ast_cmd_if(expr_t *expr, cmd_t *body, int line) {
   cmd_t *cmd = (cmd_t *)malloc(sizeof(cmd_t));
 
   if (cmd) {
-    cmd->kind = T_SE;
+    cmd->kind = CMD_IF;
     cmd->expr = expr;
     cmd->body = body;
     cmd->else_body = NULL;
@@ -227,7 +227,7 @@ cmd_t *ast_cmd_if_else(expr_t *expr, cmd_t *body, cmd_t *else_body, int line) {
   cmd_t *if_cmd = (cmd_t *)malloc(sizeof(cmd_t));
 
   if (if_cmd) {
-    if_cmd->kind = T_SE_ENTAO;
+    if_cmd->kind = CMD_IF_ELSE;
     if_cmd->expr = expr;
     if_cmd->body = body;
     if_cmd->else_body = else_body;
@@ -237,7 +237,7 @@ cmd_t *ast_cmd_if_else(expr_t *expr, cmd_t *body, cmd_t *else_body, int line) {
   return if_cmd;
 }
 
-expr_t *ast_expr(types_t e, char *id, int const_int, char const_char, expr_t *l,
+expr_t *ast_expr(expr_e e, char *id, int const_int, char const_char, expr_t *l,
                  expr_t *r, expr_list_t *elist, int line) {
 
   expr_t *expr = (expr_t *)malloc(sizeof(expr_t));
