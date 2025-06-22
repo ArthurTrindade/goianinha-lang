@@ -59,6 +59,12 @@ void add_var_to_scope(scope_t scope, char *id, types_t type, int line) {
   symboltable_set(scope, new_sym);
 }
 
+int are_types_compatible(types_t expected, types_t found) {
+  if (expected == found)
+    return 1;
+  return 0;
+}
+
 void semantic_program(program_t *node) {
   env_t current_env = semantic_init();
 
@@ -171,7 +177,7 @@ void semantic_function(env_t current_env, decl_func_t *node,
 
 void semantic_block(env_t current_env, block_t *node) {
 
-  env_add(current_env, symboltable_new());  
+  env_add(current_env, symboltable_new());
   decl_varlist_t *current_varlist = node->var_list;
   scope_t top = get_current_scope(current_env);
 
@@ -209,7 +215,7 @@ void semantic_block(env_t current_env, block_t *node) {
 }
 
 void semantic_cmd(env_t current_env, cmd_t *node) {
-    
+
   if (node == NULL)
     return;
   switch (node->kind) {
@@ -223,8 +229,8 @@ void semantic_cmd(env_t current_env, cmd_t *node) {
   case CMD_IF:
   case CMD_IF_ELSE: {
     types_t cond_type = semantic_expr(current_env, node->expr);
-    if (cond_type != T_BOOL && cond_type != T_INT) {
-      printf("A condição tem que ser booleana.\n");
+    if (cond_type != T_INT) {
+      printf("A condição incorreta\n");
     }
     semantic_cmd(current_env, node->body);
     if (node->else_body && node->kind == CMD_IF_ELSE) {
@@ -307,7 +313,7 @@ types_t semantic_expr(env_t current_env, expr_t *node) {
   case EXPR_SUB:
   case EXPR_MUL:
   case EXPR_DIV: {
-    types_t left_type = semantic_expr(current_env, node->left);
+    types_t left_type  = semantic_expr(current_env, node->left);
     types_t right_type = semantic_expr(current_env, node->right);
     if (left_type == T_UNKNOWN || right_type == T_UNKNOWN) {
       return T_UNKNOWN;
@@ -320,6 +326,66 @@ types_t semantic_expr(env_t current_env, expr_t *node) {
     report_semantic_error(node->line, "Tipos incompátiveis");
     return T_UNKNOWN;
   }
+  case EXPR_EQUAL:
+  case EXPR_DIFF:
+  case EXPR_LESS:
+  case EXPR_LESS_EQUAL:
+  case EXPR_GREATER:
+  case EXPR_GREATER_EQUAL: {
+    types_t left_type = semantic_expr(current_env, node->left);
+    types_t right_type = semantic_expr(current_env, node->right);
+    if (left_type == T_UNKNOWN || right_type == T_UNKNOWN) {
+      return T_UNKNOWN;
+    }
+
+    if (left_type == T_INT && right_type == T_INT) {
+      return T_INT;
+    }
+
+    report_semantic_error(node->line, "Tipos inconpatíveis");
+
+    return T_UNKNOWN;
+  }
+
+  case EXPR_OR:
+  case EXPR_AND: {
+    types_t left_type  = semantic_expr(current_env, node->left);
+    types_t right_type = semantic_expr(current_env, node->right);
+    if (left_type == T_UNKNOWN || right_type == T_UNKNOWN) {
+      return T_UNKNOWN;
+    }
+
+    if (left_type == T_INT && right_type == T_INT) {
+      return T_INT;
+    }
+    report_semantic_error(node->line, "Tipos incompatíveis");
+    return T_UNKNOWN;
+  }
+
+  case EXPR_NOT:
+  case EXPR_MINUS: {
+    types_t operand_type = semantic_expr(current_env, node->left);
+
+    if (operand_type == T_UNKNOWN) {
+        return T_UNKNOWN;
+    }
+
+    if (node->kind == EXPR_NOT) {
+        if (operand_type == T_INT) {
+            return T_INT;
+        }
+        report_semantic_error(node->line, "Tipo inconpatível");
+        return T_UNKNOWN;
+    } else if (node->kind == EXPR_MINUS) {
+        if (operand_type == T_INT) {
+            return operand_type;
+        }
+
+        report_semantic_error(node->line, "Tipo incompatível");
+        return T_UNKNOWN;
+    }
+  }
+
 
   default:
     return T_UNKNOWN;

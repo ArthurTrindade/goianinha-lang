@@ -4,8 +4,8 @@ int soma(int i, int j) {
     retorne i + j;
 }
 programa {
-    int xs;
-    car c;
-    leia x;
-    escreva c + 1;
+    int x;
+    se (x > 10) entao {
+        escreva x + 1;
+    }
 }
