@@ -21,4 +21,10 @@ void semantic_cmd(env_t current_env, cmd_t *node);
 
 types_t semantic_expr(env_t current_env, expr_t *node);
 
+void report_semantic_error(int line, const char *message);
+
+static scope_t get_current_scope(env_t env);
+
+
+
 #endif

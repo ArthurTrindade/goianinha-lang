@@ -1,9 +1,12 @@
 int x;
+int x;
 int soma(int i, int j) {
-    int i;
+    retorne i + j;
+}
+int soma(int i, int j) {
     retorne i + j;
 }
 programa {
-    int s;
-    escreva 10;
+    int a;
+    leia a;
 }

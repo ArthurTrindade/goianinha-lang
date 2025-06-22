@@ -2,13 +2,59 @@
 #include "../include/semantic.h"
 
 env_t semantic_init() {
-  env_t env = env_new();
-  scope_t h = symboltable_new();
-  env_add(env, h);
-  return env;
+    env_t env = env_new();
+    if (env == NULL) {
+        fprintf(stderr, "Erro fatal: Falha ao alocar ambiente de escopos.\n");
+        exit(1);
+    }
+    scope_t h = symboltable_new();
+    if (h == NULL) {
+        fprintf(stderr, "Erro fatal: Falha ao alocar tabela de símbolos global.\n");
+        env_free(env);
+        exit(1);
+    }
+    env_add(env, h);
+    return env;
 }
 
 void semantic_end(env_t current_env) { env_free(current_env); }
+
+void report_semantic_error(int line, const char *message) {
+  fprintf(stderr, "Erro semântico na linha %d: %s\n", line, message);
+}
+
+static scope_t get_current_scope(env_t env) {
+    if (env == NULL || env->head == NULL) {
+        fprintf(stderr, "Erro interno: A pilha de escopos está vazia ou não inicializada.\n");
+        return NULL;
+    }
+
+    return list_data(list_head(env));
+}
+
+static symbol_t *check_redefinition(scope_t scope, const char *id, int line, const char *symbol_type_name) {
+    symbol_t aux = {.lexeme = (char *)id};
+    symbol_t *s = symboltable_get(scope, &aux.lexeme);
+    if (s) {
+        report_semantic_error(line, (char*)id);
+        fprintf(stderr, "Erro: %s '%s' redefinido na linha %d.\n", symbol_type_name, id, line);
+    }
+
+    return s;
+}
+
+static void add_var_to_scope(scope_t scope, char *id, types_t type, int line, const char *symbol_type_name) {
+    if (!id) {
+        report_semantic_error(line, "Tentativa de adicionar ID nulo ao escopo.");
+        return;
+    }
+    symbol_t *new_sym = symbol_var(id, type, -1, line);
+    if (!new_sym) {
+        report_semantic_error(line, "Falha ao alocar novo símbolo.");
+        return;
+    }
+    symboltable_set(scope, new_sym);
+}
 
 void semantic_program(program_t *node) {
   env_t current_env = semantic_init();
@@ -17,30 +63,49 @@ void semantic_program(program_t *node) {
   decl_funcvar_t *current_funcvar = node->funcvar;
   scope_t top = current_env->head->data;
 
-  while (current_funcvar != NULL) {
+  while (current_funcvar) {
     if (current_funcvar->decl_var) {
       symbol_t aux = {.lexeme = current_funcvar->id};
       symbol_t *s = symboltable_get(top, &aux.lexeme);
       if (s) {
-        printf("Variável global já declarada\n");
+        report_semantic_error(current_funcvar->decl_var->line,
+                              "Variável global redefinida\n");
       } else {
         symbol_t *new_var_sym =
             symbol_var(current_funcvar->id, current_funcvar->type, -1,
                        current_funcvar->line);
         symboltable_set(top, new_var_sym);
       }
+
+      decl_var_t *current_var = current_funcvar->decl_var;
+
+      while (current_var) {
+        symbol_t aux = {.lexeme = current_var->id};
+        symbol_t *s = symboltable_get(top, &aux.lexeme);
+        if (s) {
+            report_semantic_error(current_var->line, "Variável global redefinida\n");
+        } else {
+            symbol_t *new_var = symbol_var(current_var->id, current_funcvar->type, -1, current_var->line);
+            symboltable_set(top, new_var);
+        }
+        current_var = current_var->next;
+      }
+
     } else if (current_funcvar->decl_func) {
       symbol_t aux = {.lexeme = current_funcvar->id};
       symbol_t *s = symboltable_get(top, &aux.lexeme);
       if (s) {
-        printf("Função da definida\n");
+        report_semantic_error(current_funcvar->decl_func->params->line,
+                              "Função redefinida\n");
       } else {
         list_symbol_t fun_params = list_symbol_new();
         param_listcount_t *param_node =
             current_funcvar->decl_func->params->param_count;
+
         while (param_node) {
           symbol_t *param_sym = symbol_param(param_node->id, param_node->type,
                                              -1, param_node->line);
+
           list_symbol_add(fun_params, param_sym);
           param_node = param_node->next;
         }
@@ -50,9 +115,9 @@ void semantic_program(program_t *node) {
             fun_params, current_funcvar->decl_func->params->line);
 
         symboltable_set(top, new_func);
-        // TODO: semantic_function
+
         semantic_function(current_env, current_funcvar->decl_func,
-          current_funcvar->type);
+                          current_funcvar->type);
       }
     }
 
@@ -60,10 +125,7 @@ void semantic_program(program_t *node) {
   }
 
   if (node->prog && node->prog->block) {
-    // current_function_return_type
-    // TODO: Semantic Block
-    // semantic_block(current_env, node->prog->block);
-    printf("semantic block\n");
+    semantic_block(current_env, node->prog->block);
   }
 
   semantic_end(current_env);
@@ -93,13 +155,14 @@ void semantic_function(env_t current_env, decl_func_t *node,
     if (s) {
       printf("Parametro redefinido\n");
     } else {
-      symbol_t *new_param_sym = symbol_param(param_node->id, param_node->type, -1, param_node->line);
+      symbol_t *new_param_sym =
+          symbol_param(param_node->id, param_node->type, -1, param_node->line);
       symboltable_set(top, new_param_sym);
     }
     param_node = param_node->next;
   }
 
-//   TODO: semantic_block(current_env, node->block);
+  semantic_block(current_env, node->block);
 
   env_delete(current_env);
 }
@@ -108,23 +171,38 @@ void semantic_block(env_t current_env, block_t *node) {
   env_add(current_env, symboltable_new());
 
   decl_varlist_t *current_varlist = node->var_list;
-  while (current_varlist != NULL) {
-    if (symboltable_get(list_data(list_head(current_env)),
-                        current_varlist->id) != NULL) {
-      // report error
+  scope_t top = list_data(list_head(current_env));
+
+  while (current_varlist) {
+    symbol_t aux = {.lexeme = current_varlist->id};
+    symbol_t *s = symboltable_get(top, &aux.lexeme);
+    if (s) {
+      printf("Variavel local redefinida\n");
     } else {
-      symbol_t *new_var_sym =
-          symbol_var(current_varlist->id, current_varlist->type, -1,
-                     current_varlist->line);
-      symboltable_set(list_data(list_head(current_env)), new_var_sym);
+      symbol_t *new_var = symbol_var(current_varlist->id, current_varlist->type,
+                                     -1, current_varlist->line);
+      symboltable_set(top, new_var);
     }
 
+    decl_var_t *current_var = current_varlist->var;
+
+    while (current_var) {
+      symbol_t aux = {.lexeme = current_var->id};
+      symbol_t *s = symboltable_get(top, &aux.lexeme);
+      if (s) {
+        report_semantic_error(current_var->line, "Variável redefinida");
+      } else {
+        symbol_t *new_var = symbol_var(current_var->id, current_varlist->type, -1, current_var->line);
+        symboltable_set(top, new_var);
+      }
+      current_var = current_var->next;
+    }
     current_varlist = current_varlist->next;
   }
 
   cmd_list_t *current_cmd_list = node->cmd_list;
   while (current_cmd_list != NULL) {
-    // semantic_cmd(current_cmd_list->cmd);
+    semantic_cmd(current_env, current_cmd_list->cmd);
     current_cmd_list = current_cmd_list->next;
   }
 
@@ -157,7 +235,7 @@ void semantic_cmd(env_t current_env, cmd_t *node) {
   case CMD_LEIA: {
     symbol_t *sym = symbol_search(current_env, node->id);
     if (sym == NULL) {
-      // report error - Variavel não declarada
+      printf("Variável não declarada\n");
     } else if (sym->symbol_type != T_VAR && sym->symbol_type != T_PARAM) {
       // report error - não é uma variavel ou parametro
     }
@@ -183,7 +261,7 @@ types_t semantic_expr(env_t current_env, expr_t *node) {
   case EXPR_ID: {
     symbol_t *sym = symbol_search(current_env, node->id);
     if (sym == NULL) {
-      // report error - Identificador não encontrado
+      printf("Idenficador não encontrado\n");
       return T_UNKNOWN;
     }
 
@@ -199,6 +277,7 @@ types_t semantic_expr(env_t current_env, expr_t *node) {
 
       if (args_count != list_size(sym->params)) {
         // report error - Numero incorreto de parametros
+        printf("Numero incorreto de paramentros\n");
         return sym->data_type;
       }
 
