@@ -7,18 +7,14 @@
 #define TYPES_H
 
 typedef enum {
-  CMD_DECL,
   CMD_EXPR,
   CMD_IF,
   CMD_IF_ELSE,
   CMD_WHILE,
-  CMD_PRINT,
-  CMD_RETURN,
   CMD_BLOCK,
   CMD_LEIA,
   CMD_ESCREVA,
   CMD_RETORNE,
-  CMD_STRING
 } cmd_e;
 
 typedef enum {
@@ -94,6 +90,7 @@ typedef enum types_ {
   T_RETORNE,   /* retorne */
   T_CAR,       /* car */
   T_INT,       /* int */
+  T_BOOL,
   T_LEIA,      /* leia */
   T_ESCREVA,   /* escreva */
   T_NOVALINHA, /* novalinha */

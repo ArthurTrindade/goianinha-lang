@@ -23,8 +23,10 @@ types_t semantic_expr(env_t current_env, expr_t *node);
 
 void report_semantic_error(int line, const char *message);
 
-static scope_t get_current_scope(env_t env);
+scope_t get_current_scope(env_t env);
 
+symbol_t *check_redefinition(scope_t scope, char *id, int line);
 
+void add_var_to_scope(scope_t scope, char *id, types_t type, int line);
 
 #endif

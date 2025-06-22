@@ -28,8 +28,6 @@ int main(int argc, char **argv) {
   printf("%d\n", res);
   printf("\n");
 
-  program_t *p = root;
-
   env_t e = env_new();
 
   semantic_program(root);

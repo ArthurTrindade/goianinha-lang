@@ -2,19 +2,19 @@
 #include "../include/semantic.h"
 
 env_t semantic_init() {
-    env_t env = env_new();
-    if (env == NULL) {
-        fprintf(stderr, "Erro fatal: Falha ao alocar ambiente de escopos.\n");
-        exit(1);
-    }
-    scope_t h = symboltable_new();
-    if (h == NULL) {
-        fprintf(stderr, "Erro fatal: Falha ao alocar tabela de símbolos global.\n");
-        env_free(env);
-        exit(1);
-    }
-    env_add(env, h);
-    return env;
+  env_t env = env_new();
+  if (env == NULL) {
+    fprintf(stderr, "Erro fatal: Falha ao alocar ambiente de escopos.\n");
+    exit(1);
+  }
+  scope_t h = symboltable_new();
+  if (h == NULL) {
+    fprintf(stderr, "Erro fatal: Falha ao alocar tabela de símbolos global.\n");
+    env_free(env);
+    exit(1);
+  }
+  env_add(env, h);
+  return env;
 }
 
 void semantic_end(env_t current_env) { env_free(current_env); }
@@ -23,77 +23,84 @@ void report_semantic_error(int line, const char *message) {
   fprintf(stderr, "Erro semântico na linha %d: %s\n", line, message);
 }
 
-static scope_t get_current_scope(env_t env) {
-    if (env == NULL || env->head == NULL) {
-        fprintf(stderr, "Erro interno: A pilha de escopos está vazia ou não inicializada.\n");
-        return NULL;
-    }
+scope_t get_current_scope(env_t env) {
+  if (env == NULL || env->head == NULL) {
+    fprintf(
+        stderr,
+        "Erro interno: A pilha de escopos está vazia ou não inicializada.\n");
+    return NULL;
+  }
 
-    return list_data(list_head(env));
+  return env->head->data;
 }
 
-static symbol_t *check_redefinition(scope_t scope, const char *id, int line, const char *symbol_type_name) {
-    symbol_t aux = {.lexeme = (char *)id};
-    symbol_t *s = symboltable_get(scope, &aux.lexeme);
-    if (s) {
-        report_semantic_error(line, (char*)id);
-        fprintf(stderr, "Erro: %s '%s' redefinido na linha %d.\n", symbol_type_name, id, line);
-    }
-
+symbol_t *check_redefinition(scope_t scope, char *id, int line) {
+  if (!id) {
+    return NULL;
+  }
+  symbol_t aux = {.lexeme = id};
+  symbol_t *s = symboltable_get(scope, &aux.lexeme);
+  if (s) {
     return s;
+  }
+
+  return NULL;
 }
 
-static void add_var_to_scope(scope_t scope, char *id, types_t type, int line, const char *symbol_type_name) {
-    if (!id) {
-        report_semantic_error(line, "Tentativa de adicionar ID nulo ao escopo.");
-        return;
-    }
-    symbol_t *new_sym = symbol_var(id, type, -1, line);
-    if (!new_sym) {
-        report_semantic_error(line, "Falha ao alocar novo símbolo.");
-        return;
-    }
-    symboltable_set(scope, new_sym);
+void add_var_to_scope(scope_t scope, char *id, types_t type, int line) {
+  if (!id) {
+    return;
+  }
+  symbol_t *new_sym = symbol_var(id, type, -1, line);
+  if (!new_sym) {
+    report_semantic_error(line, "Falha ao alocar novo símbolo.");
+    return;
+  }
+  symboltable_set(scope, new_sym);
 }
 
 void semantic_program(program_t *node) {
   env_t current_env = semantic_init();
 
-  // Para declarações de funções e variaveis globais
-  decl_funcvar_t *current_funcvar = node->funcvar;
-  scope_t top = current_env->head->data;
+  scope_t global_scope = get_current_scope(current_env);
 
+  if (!global_scope) {
+    fprintf(stderr, "Erro crítivo: Escopo global não disponível.\n");
+    semantic_end(current_env);
+    return;
+  }
+
+  decl_funcvar_t *current_funcvar = node->funcvar;
   while (current_funcvar) {
     if (current_funcvar->decl_var) {
-      symbol_t aux = {.lexeme = current_funcvar->id};
-      symbol_t *s = symboltable_get(top, &aux.lexeme);
+      symbol_t *s = check_redefinition(global_scope, current_funcvar->id,
+                                       current_funcvar->line);
+
       if (s) {
         report_semantic_error(current_funcvar->decl_var->line,
-                              "Variável global redefinida\n");
+                              "Variável redefinida.\n");
       } else {
-        symbol_t *new_var_sym =
-            symbol_var(current_funcvar->id, current_funcvar->type, -1,
-                       current_funcvar->line);
-        symboltable_set(top, new_var_sym);
+        add_var_to_scope(global_scope, current_funcvar->id,
+                         current_funcvar->type, current_funcvar->line);
       }
-
       decl_var_t *current_var = current_funcvar->decl_var;
-
       while (current_var) {
-        symbol_t aux = {.lexeme = current_var->id};
-        symbol_t *s = symboltable_get(top, &aux.lexeme);
+
+        symbol_t *s = check_redefinition(global_scope, current_var->id,
+                                         current_var->line);
         if (s) {
-            report_semantic_error(current_var->line, "Variável global redefinida\n");
+          report_semantic_error(current_var->line,
+                                "Variável global redefinida.\n");
         } else {
-            symbol_t *new_var = symbol_var(current_var->id, current_funcvar->type, -1, current_var->line);
-            symboltable_set(top, new_var);
+          add_var_to_scope(global_scope, current_var->id, current_funcvar->type,
+                           current_var->line);
         }
         current_var = current_var->next;
       }
 
     } else if (current_funcvar->decl_func) {
-      symbol_t aux = {.lexeme = current_funcvar->id};
-      symbol_t *s = symboltable_get(top, &aux.lexeme);
+      symbol_t *s = check_redefinition(global_scope, current_funcvar->id,
+                                       current_funcvar->line);
       if (s) {
         report_semantic_error(current_funcvar->decl_func->params->line,
                               "Função redefinida\n");
@@ -114,7 +121,7 @@ void semantic_program(program_t *node) {
             current_funcvar->id, current_funcvar->type, list_size(fun_params),
             fun_params, current_funcvar->decl_func->params->line);
 
-        symboltable_set(top, new_func);
+        symboltable_set(global_scope, new_func);
 
         semantic_function(current_env, current_funcvar->decl_func,
                           current_funcvar->type);
@@ -144,20 +151,15 @@ void semantic_function(env_t current_env, decl_func_t *node,
                        types_t return_type) {
 
   env_add(current_env, symboltable_new());
+  scope_t func_scope = get_current_scope(current_env);
 
-  //   current_function_return_type = return_type;
-  scope_t top = list_data(list_head(current_env));
   param_listcount_t *param_node = node->params->param_count;
-
   while (param_node) {
-    symbol_t aux = {.lexeme = param_node->id};
-    symbol_t *s = symboltable_get(top, &aux.lexeme);
-    if (s) {
-      printf("Parametro redefinido\n");
+    if (check_redefinition(func_scope, param_node->id, param_node->line)) {
+      report_semantic_error(param_node->line, "Parametro redefinido.\n");
     } else {
-      symbol_t *new_param_sym =
-          symbol_param(param_node->id, param_node->type, -1, param_node->line);
-      symboltable_set(top, new_param_sym);
+      add_var_to_scope(func_scope, param_node->id, param_node->type,
+                       param_node->line);
     }
     param_node = param_node->next;
   }
@@ -168,32 +170,29 @@ void semantic_function(env_t current_env, decl_func_t *node,
 }
 
 void semantic_block(env_t current_env, block_t *node) {
-  env_add(current_env, symboltable_new());
 
+  env_add(current_env, symboltable_new());  
   decl_varlist_t *current_varlist = node->var_list;
-  scope_t top = list_data(list_head(current_env));
+  scope_t top = get_current_scope(current_env);
 
   while (current_varlist) {
-    symbol_t aux = {.lexeme = current_varlist->id};
-    symbol_t *s = symboltable_get(top, &aux.lexeme);
-    if (s) {
-      printf("Variavel local redefinida\n");
+
+    if (check_redefinition(top, current_varlist->id, current_varlist->line)) {
+      report_semantic_error(current_varlist->var->line,
+                            "Variável local redefinida.");
     } else {
-      symbol_t *new_var = symbol_var(current_varlist->id, current_varlist->type,
-                                     -1, current_varlist->line);
-      symboltable_set(top, new_var);
+      add_var_to_scope(top, current_varlist->id, current_varlist->type,
+                       current_varlist->var->line);
     }
 
     decl_var_t *current_var = current_varlist->var;
-
     while (current_var) {
-      symbol_t aux = {.lexeme = current_var->id};
-      symbol_t *s = symboltable_get(top, &aux.lexeme);
-      if (s) {
+
+      if (check_redefinition(top, current_var->id, current_var->line)) {
         report_semantic_error(current_var->line, "Variável redefinida");
       } else {
-        symbol_t *new_var = symbol_var(current_var->id, current_varlist->type, -1, current_var->line);
-        symboltable_set(top, new_var);
+        add_var_to_scope(top, current_var->id, current_varlist->type,
+                         current_var->line);
       }
       current_var = current_var->next;
     }
@@ -201,7 +200,7 @@ void semantic_block(env_t current_env, block_t *node) {
   }
 
   cmd_list_t *current_cmd_list = node->cmd_list;
-  while (current_cmd_list != NULL) {
+  while (current_cmd_list) {
     semantic_cmd(current_env, current_cmd_list->cmd);
     current_cmd_list = current_cmd_list->next;
   }
@@ -210,6 +209,7 @@ void semantic_block(env_t current_env, block_t *node) {
 }
 
 void semantic_cmd(env_t current_env, cmd_t *node) {
+    
   if (node == NULL)
     return;
   switch (node->kind) {
@@ -222,12 +222,12 @@ void semantic_cmd(env_t current_env, cmd_t *node) {
   case CMD_WHILE:
   case CMD_IF:
   case CMD_IF_ELSE: {
-    // types_t conde_type = semantic_expr(node->expr);
-    // if (cond_type != BOOL_TYPE && cond_type != INT_TYPE) {
-    //     // report error A condição do if/while deve ser booleana
-    // }
+    types_t cond_type = semantic_expr(current_env, node->expr);
+    if (cond_type != T_BOOL && cond_type != T_INT) {
+      printf("A condição tem que ser booleana.\n");
+    }
     semantic_cmd(current_env, node->body);
-    if (node->else_body) {
+    if (node->else_body && node->kind == CMD_IF_ELSE) {
       semantic_cmd(current_env, node->else_body);
     }
     break;
@@ -235,9 +235,9 @@ void semantic_cmd(env_t current_env, cmd_t *node) {
   case CMD_LEIA: {
     symbol_t *sym = symbol_search(current_env, node->id);
     if (sym == NULL) {
-      printf("Variável não declarada\n");
+      report_semantic_error(node->line, "Variável não declarada.");
     } else if (sym->symbol_type != T_VAR && sym->symbol_type != T_PARAM) {
-      // report error - não é uma variavel ou parametro
+      report_semantic_error(node->line, "Não é um parâmetro ou variável.");
     }
     break;
   }
@@ -245,7 +245,7 @@ void semantic_cmd(env_t current_env, cmd_t *node) {
     semantic_expr(current_env, node->expr);
     break;
   }
-  case CMD_RETURN: {
+  case CMD_RETORNE: {
   }
 
   default:
@@ -261,7 +261,7 @@ types_t semantic_expr(env_t current_env, expr_t *node) {
   case EXPR_ID: {
     symbol_t *sym = symbol_search(current_env, node->id);
     if (sym == NULL) {
-      printf("Idenficador não encontrado\n");
+      report_semantic_error(node->line, "Identificador não encontrado");
       return T_UNKNOWN;
     }
 
@@ -270,15 +270,13 @@ types_t semantic_expr(env_t current_env, expr_t *node) {
     } else if (sym->symbol_type == T_FUNCTION && node->expr_list != NULL) {
       int args_count = 0;
       expr_list_t *current_arg = node->expr_list;
-      while (current_arg != NULL) {
+      while (current_arg) {
         args_count++;
         current_arg = current_arg->next;
       }
 
       if (args_count != list_size(sym->params)) {
-        // report error - Numero incorreto de parametros
-        printf("Numero incorreto de paramentros\n");
-        return sym->data_type;
+        report_semantic_error(node->line, "Números de parametros incorreto.");
       }
 
       // comparar tipos dos argumentos
@@ -304,6 +302,24 @@ types_t semantic_expr(env_t current_env, expr_t *node) {
     return T_INT;
   case EXPR_CHAR:
     return T_CAR;
+
+  case EXPR_ADD:
+  case EXPR_SUB:
+  case EXPR_MUL:
+  case EXPR_DIV: {
+    types_t left_type = semantic_expr(current_env, node->left);
+    types_t right_type = semantic_expr(current_env, node->right);
+    if (left_type == T_UNKNOWN || right_type == T_UNKNOWN) {
+      return T_UNKNOWN;
+    }
+
+    if (left_type == T_INT && right_type == T_INT) {
+      return T_INT;
+    }
+
+    report_semantic_error(node->line, "Tipos incompátiveis");
+    return T_UNKNOWN;
+  }
 
   default:
     return T_UNKNOWN;
