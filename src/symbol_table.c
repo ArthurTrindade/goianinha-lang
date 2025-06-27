@@ -27,7 +27,7 @@ list_symbol_t list_symbol_new() {
 void list_symbol_free(list_symbol_t l) { list_destroy(l); }
 
 int list_symbol_add(list_symbol_t l, symbol_t *s) {
-  return list_insert_end(l, s);
+  return list_insert_begin(l, s);
 }
 
 scope_t symboltable_new() {
@@ -138,7 +138,6 @@ void decl_resolve(env_t e, decl_funcvar_t *decl) {
     return;
 
   types_t type = e->size > 1 ? T_LOCAL : T_GLOBAL;
-  
 }
 
 /**/

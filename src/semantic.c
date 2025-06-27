@@ -111,7 +111,7 @@ void semantic_program(program_t *node) {
         param_listcount_t *param_node =
             current_funcvar->decl_func->params->param_count;
 
-        while (param_node) {
+        while (param_node != NULL) {
           symbol_t *param_sym = symbol_param(param_node->id, param_node->type,
                                              -1, param_node->line);
 
@@ -142,14 +142,6 @@ void semantic_program(program_t *node) {
 
   semantic_end(current_env);
 
-  //   if (semantic_errors > 0) {
-  //     fprintf(stderr, "Compilação falhou devido a %d erro(s)
-  //                     semântico(s)
-  //                         .\n ",
-  //                     semantic_errors);
-  //   } else {
-  //     fprintf(stdout, "Análise semântica concluída com sucesso.\n");
-  //   }
 }
 
 void semantic_function(env_t current_env, decl_func_t *node,
@@ -282,6 +274,33 @@ types_t semantic_expr(env_t current_env, expr_t *node) {
 
     if (sym->symbol_type == T_VAR || sym->symbol_type == T_PARAM) {
       return sym->data_type;
+    }
+
+    if (sym->symbol_type == T_FUNCTION && node->expr_list != NULL) {
+      int args_count = 0;
+      expr_list_t *args = node->expr_list;
+      while (args != NULL) {
+        args_count++;
+        args = args->next;
+      }
+
+      if (args_count != list_size(sym->params)) {
+        report_semantic_error(node->line, "Número de parâmetro incorreto.");
+        return T_UNKNOWN;
+      }
+
+      args = node->expr_list;
+      node_t *param_node = sym->params->head;
+      for (int i = 0; i < args_count; i++) {
+        types_t provided_type = semantic_expr(current_env, args->expr);
+        symbol_t *s = list_data(param_node);
+        if (provided_type != (s->data_type)) {
+          report_semantic_error(node->line, "Tipo do argumento imcompatível.");
+          return T_UNKNOWN;
+        }
+        args = args->next;
+        param_node = param_node->next;
+      }
     }
 
     return T_UNKNOWN;
