@@ -129,7 +129,7 @@ Comando:
        | RETORNE Expr SEMICOLON { $$ = ast_cmd_ret($2, yylineno); } 
        | LEIA IDENTIFIER SEMICOLON { $$ = ast_cmd_leia($2, yylineno); }
        | ESCREVA Expr SEMICOLON    { $$ = ast_cmd_escreva($2, yylineno); }
-       | ESCREVA STRING SEMICOLON  { $$ = ast_cmd_leia($2, yylineno); }
+       | ESCREVA STRING SEMICOLON  { $$ = ast_cmd_string($2, yylineno); }
        | NOVALINHA SEMICOLON    
        | SE LEFT_PAREN Expr RIGHT_PAREN ENTAO Comando { $$ = ast_cmd_if($3, $6, yylineno); }
        | SE LEFT_PAREN Expr RIGHT_PAREN ENTAO Comando SENAO Comando { $$ = ast_cmd_if_else($3, $6, $8, yylineno); }

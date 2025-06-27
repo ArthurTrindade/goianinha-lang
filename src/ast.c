@@ -147,6 +147,20 @@ cmd_t *ast_cmd_ret(expr_t *expr, int line) {
 
   return cmd;
 }
+
+cmd_t *ast_cmd_string(char *id, int line) {
+
+  cmd_t *cmd = (cmd_t *)malloc(sizeof(cmd_t));
+
+  if (cmd) {
+    cmd->kind = CMD_STRING;
+    cmd->id = id ? strdup(id) : NULL;
+    cmd->line = line;
+  }
+
+  return cmd;
+}
+
 cmd_t *ast_cmd_leia(char *id, int line) {
 
   cmd_t *cmd = (cmd_t *)malloc(sizeof(cmd_t));

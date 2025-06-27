@@ -40,11 +40,8 @@ symbol_t *check_redefinition(scope_t scope, char *id, int line) {
   }
   symbol_t aux = {.lexeme = id};
   symbol_t *s = symboltable_get(scope, &aux.lexeme);
-  if (s) {
-    return s;
-  }
 
-  return NULL;
+  return s ? s : NULL;
 }
 
 void add_var_to_scope(scope_t scope, char *id, types_t type, int line) {
@@ -91,7 +88,6 @@ void semantic_program(program_t *node) {
       }
       decl_var_t *current_var = current_funcvar->decl_var;
       while (current_var) {
-
         symbol_t *s = check_redefinition(global_scope, current_var->id,
                                          current_var->line);
         if (s) {
@@ -182,7 +178,6 @@ void semantic_block(env_t current_env, block_t *node) {
   scope_t top = get_current_scope(current_env);
 
   while (current_varlist) {
-
     if (check_redefinition(top, current_varlist->id, current_varlist->line)) {
       report_semantic_error(current_varlist->var->line,
                             "Variável local redefinida.");
@@ -193,7 +188,6 @@ void semantic_block(env_t current_env, block_t *node) {
 
     decl_var_t *current_var = current_varlist->var;
     while (current_var) {
-
       if (check_redefinition(top, current_var->id, current_var->line)) {
         report_semantic_error(current_var->line, "Variável redefinida");
       } else {
@@ -252,8 +246,11 @@ void semantic_cmd(env_t current_env, cmd_t *node) {
     break;
   }
   case CMD_RETORNE: {
+    break;
   }
-
+  case CMD_STRING: {
+    break;
+  }
   default:
     break;
   }
@@ -273,35 +270,8 @@ types_t semantic_expr(env_t current_env, expr_t *node) {
 
     if (sym->symbol_type == T_VAR || sym->symbol_type == T_PARAM) {
       return sym->data_type;
-    } else if (sym->symbol_type == T_FUNCTION && node->expr_list != NULL) {
-      int args_count = 0;
-      expr_list_t *current_arg = node->expr_list;
-      while (current_arg) {
-        args_count++;
-        current_arg = current_arg->next;
-      }
-
-      if (args_count != list_size(sym->params)) {
-        report_semantic_error(node->line, "Números de parametros incorreto.");
-      }
-
-      // comparar tipos dos argumentos
-      current_arg = node->expr_list;
-      node_t *param_node = list_head(sym->params);
-      for (int i = 0; i < args_count; i++) {
-        types_t type = semantic_expr(current_env, current_arg->expr);
-        symbol_t *s = list_data(param_node);
-        if (type != s->data_type) {
-          // report error - Tipo do argumento difrente do parametro
-        }
-        current_arg = current_arg->next;
-        param_node = list_next(param_node);
-      }
-      return sym->data_type;
-    } else if (sym->symbol_type == T_FUNCTION && node->expr_list == NULL) {
-      // report error Uso de função sem chamada?
-      return T_UNKNOWN;
-    }
+    }  
+    
     return T_UNKNOWN;
   }
   case EXPR_INT:
@@ -315,13 +285,14 @@ types_t semantic_expr(env_t current_env, expr_t *node) {
   case EXPR_DIV: {
     types_t left_type  = semantic_expr(current_env, node->left);
     types_t right_type = semantic_expr(current_env, node->right);
+
     if (left_type == T_UNKNOWN || right_type == T_UNKNOWN) {
       return T_UNKNOWN;
     }
 
     if (left_type == T_INT && right_type == T_INT) {
       return T_INT;
-    }
+    } 
 
     report_semantic_error(node->line, "Tipos incompátiveis");
     return T_UNKNOWN;
@@ -338,8 +309,10 @@ types_t semantic_expr(env_t current_env, expr_t *node) {
       return T_UNKNOWN;
     }
 
-    if (left_type == T_INT && right_type == T_INT) {
+    if ((left_type == T_INT && right_type == T_INT)) {
       return T_INT;
+    } else if ((left_type == T_CAR && right_type == T_CAR)) {
+       return T_INT;
     }
 
     report_semantic_error(node->line, "Tipos inconpatíveis");
@@ -385,7 +358,6 @@ types_t semantic_expr(env_t current_env, expr_t *node) {
         return T_UNKNOWN;
     }
   }
-
 
   default:
     return T_UNKNOWN;

@@ -138,6 +138,8 @@ cmd_t *ast_cmd_leia(char *id, int line);
 
 cmd_t *ast_cmd_escreva(expr_t *expr, int line);
 
+cmd_t *ast_cmd_string(char *id, int line);
+
 cmd_t *ast_cmd_ret(expr_t *expr, int line);
 
 #endif

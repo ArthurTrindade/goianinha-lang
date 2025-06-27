@@ -15,6 +15,7 @@ typedef enum {
   CMD_LEIA,
   CMD_ESCREVA,
   CMD_RETORNE,
+  CMD_STRING
 } cmd_e;
 
 typedef enum {
@@ -38,6 +39,7 @@ typedef enum {
   EXPR_MINUS,
   EXPR_INT,
   EXPR_CHAR,
+  EXPR_STRING,
   EXPR_UNKNOWN
 } expr_e;
 

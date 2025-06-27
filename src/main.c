@@ -3,9 +3,7 @@
 #include "../include/ast.h"
 // #include "../include/print_ast.h"
 #include "../include/semantic.h"
-#include "../include/symbol_table.h"
 
-#include "goianinha.tab.h"
 
 extern FILE *yyin;
 extern int yylineno;
@@ -28,11 +26,7 @@ int main(int argc, char **argv) {
   printf("%d\n", res);
   printf("\n");
 
-  env_t e = env_new();
-
   semantic_program(root);
-
-  env_free(e);
 
   return 0;
 }
