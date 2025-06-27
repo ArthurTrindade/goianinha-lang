@@ -127,6 +127,9 @@ void semantic_program(program_t *node) {
 
         semantic_function(current_env, current_funcvar->decl_func,
                           current_funcvar->type);
+
+        semantic_block(current_env, current_funcvar->decl_func->block,
+                       fun_params);
       }
     }
 
@@ -134,7 +137,7 @@ void semantic_program(program_t *node) {
   }
 
   if (node->prog && node->prog->block) {
-    semantic_block(current_env, node->prog->block);
+    semantic_block(current_env, node->prog->block, NULL);
   }
 
   semantic_end(current_env);
@@ -166,16 +169,25 @@ void semantic_function(env_t current_env, decl_func_t *node,
     param_node = param_node->next;
   }
 
-  semantic_block(current_env, node->block);
+  semantic_block(current_env, node->block, NULL);
 
   env_delete(current_env);
 }
 
-void semantic_block(env_t current_env, block_t *node) {
+void semantic_block(env_t current_env, block_t *node, list_symbol_t params) {
 
   env_add(current_env, symboltable_new());
   decl_varlist_t *current_varlist = node->var_list;
   scope_t top = get_current_scope(current_env);
+
+  if (params) {
+    node_t *aux;
+    symbol_t *s;
+    for (aux = list_head(params); aux != NULL; aux = aux->next) {
+      s = list_data(aux);
+      add_var_to_scope(top, s->lexeme, s->data_type, s->line);
+    }
+  }
 
   while (current_varlist) {
     if (check_redefinition(top, current_varlist->id, current_varlist->line)) {
@@ -217,7 +229,7 @@ void semantic_cmd(env_t current_env, cmd_t *node) {
     semantic_expr(current_env, node->expr);
     break;
   case CMD_BLOCK:
-    semantic_block(current_env, node->blk);
+    semantic_block(current_env, node->blk, NULL);
     break;
   case CMD_WHILE:
   case CMD_IF:
@@ -270,8 +282,8 @@ types_t semantic_expr(env_t current_env, expr_t *node) {
 
     if (sym->symbol_type == T_VAR || sym->symbol_type == T_PARAM) {
       return sym->data_type;
-    }  
-    
+    }
+
     return T_UNKNOWN;
   }
   case EXPR_INT:
@@ -283,7 +295,7 @@ types_t semantic_expr(env_t current_env, expr_t *node) {
   case EXPR_SUB:
   case EXPR_MUL:
   case EXPR_DIV: {
-    types_t left_type  = semantic_expr(current_env, node->left);
+    types_t left_type = semantic_expr(current_env, node->left);
     types_t right_type = semantic_expr(current_env, node->right);
 
     if (left_type == T_UNKNOWN || right_type == T_UNKNOWN) {
@@ -292,7 +304,7 @@ types_t semantic_expr(env_t current_env, expr_t *node) {
 
     if (left_type == T_INT && right_type == T_INT) {
       return T_INT;
-    } 
+    }
 
     report_semantic_error(node->line, "Tipos incompátiveis");
     return T_UNKNOWN;
@@ -312,7 +324,7 @@ types_t semantic_expr(env_t current_env, expr_t *node) {
     if ((left_type == T_INT && right_type == T_INT)) {
       return T_INT;
     } else if ((left_type == T_CAR && right_type == T_CAR)) {
-       return T_INT;
+      return T_INT;
     }
 
     report_semantic_error(node->line, "Tipos inconpatíveis");
@@ -322,7 +334,7 @@ types_t semantic_expr(env_t current_env, expr_t *node) {
 
   case EXPR_OR:
   case EXPR_AND: {
-    types_t left_type  = semantic_expr(current_env, node->left);
+    types_t left_type = semantic_expr(current_env, node->left);
     types_t right_type = semantic_expr(current_env, node->right);
     if (left_type == T_UNKNOWN || right_type == T_UNKNOWN) {
       return T_UNKNOWN;
@@ -340,22 +352,22 @@ types_t semantic_expr(env_t current_env, expr_t *node) {
     types_t operand_type = semantic_expr(current_env, node->left);
 
     if (operand_type == T_UNKNOWN) {
-        return T_UNKNOWN;
+      return T_UNKNOWN;
     }
 
     if (node->kind == EXPR_NOT) {
-        if (operand_type == T_INT) {
-            return T_INT;
-        }
-        report_semantic_error(node->line, "Tipo inconpatível");
-        return T_UNKNOWN;
+      if (operand_type == T_INT) {
+        return T_INT;
+      }
+      report_semantic_error(node->line, "Tipo inconpatível");
+      return T_UNKNOWN;
     } else if (node->kind == EXPR_MINUS) {
-        if (operand_type == T_INT) {
-            return operand_type;
-        }
+      if (operand_type == T_INT) {
+        return operand_type;
+      }
 
-        report_semantic_error(node->line, "Tipo incompatível");
-        return T_UNKNOWN;
+      report_semantic_error(node->line, "Tipo incompatível");
+      return T_UNKNOWN;
     }
   }
 

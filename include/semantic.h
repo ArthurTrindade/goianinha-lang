@@ -15,7 +15,7 @@ void semantic_program(program_t *node);
 
 void semantic_function(env_t current_env, decl_func_t *node, types_t return_type);
 
-void semantic_block(env_t current_env, block_t *node);
+void semantic_block(env_t current_env, block_t *node, list_symbol_t params);
 
 void semantic_cmd(env_t current_env, cmd_t *node);
 
