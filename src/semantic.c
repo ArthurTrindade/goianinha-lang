@@ -21,6 +21,7 @@ void semantic_end(env_t current_env) { env_free(current_env); }
 
 void report_semantic_error(int line, const char *message) {
   fprintf(stderr, "Erro semântico na linha %d: %s\n", line, message);
+  exit(1);
 }
 
 scope_t get_current_scope(env_t env) {
@@ -54,12 +55,6 @@ void add_var_to_scope(scope_t scope, char *id, types_t type, int line) {
     return;
   }
   symboltable_set(scope, new_sym);
-}
-
-int are_types_compatible(types_t expected, types_t found) {
-  if (expected == found)
-    return 1;
-  return 0;
 }
 
 void semantic_program(program_t *node) {
