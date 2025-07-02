@@ -22,7 +22,7 @@ program_t *root;
 
 %union {
   int number;
-  char c;
+  char *c;
   int line;
   char *id;
   program_t *program;

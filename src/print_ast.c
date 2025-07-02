@@ -153,6 +153,9 @@ void print_cmd(cmd_t *cmd) {
     printf("Bloco de comandos:\n");
     print_block(cmd->blk);
     break;
+  case CMD_STRING:
+    printf("linha: %d\n", cmd->line);
+    printf("Escreva String: %s\n", cmd->id);
   default:
     /* printf("Comando tipo %s não tratado\n", */
     /* enum_to_string(stmt_map, cmd->kind)); */

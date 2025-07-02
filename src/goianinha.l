@@ -48,9 +48,16 @@ DIGIT   [0-9]+
 
 "/*"([^*]|\*+[^/])*"*"+"/"     { /* Ignorar comentário válido */ }
 
-\"([^\\\n"]|\\.)*\" { 
-                        return STRING; 
+\"([^\\\n"]|\\.)*\" {   
+                    yylval.id = (char*)malloc(sizeof(yytext)+1);
+                    if (yylval.id) {
+                        strcpy(yylval.id, yytext);
+                        return STRING;
                     }
+
+                    printf("Erro de memória\n");
+                    exit(1);
+            }
 
 {ID}     { 
             yylval.id = (char*)malloc(sizeof(yytext)+1);
@@ -58,7 +65,6 @@ DIGIT   [0-9]+
                 strcpy(yylval.id, yytext);
                 return check_keyword(yytext);
             }
-
             printf("Erro de memória\n");
             exit(1);
           }
@@ -73,7 +79,15 @@ DIGIT   [0-9]+
             exit(1);
          }
 
-\'[^']\' { return CARCONST; }
+\'[^']\' { 
+            yylval.c = (char*)malloc(sizeof(int));
+            if (yylval.c) {
+                yylval.c = yytext[1];
+                return CARCONST;
+            }
+            printf("Erro de memória\n");
+            exit(1);
+         }
 "+"      { return PLUS; }
 "-"      { return MINUS; }
 "="      { return EQUAL; }
