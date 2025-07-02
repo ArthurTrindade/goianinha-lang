@@ -4,5 +4,5 @@ int soma(int i, int j) {
 }
 programa {
     int x;
-    escreva soma(1, 2);
+    escreva "arthur";
 }

@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 #include "../include/ast.h"
-// #include "../include/print_ast.h"
+#include "../include/print_ast.h"
 #include "../include/semantic.h"
 
 
@@ -25,6 +25,8 @@ int main(int argc, char **argv) {
   int res = yyparse();
   printf("%d\n", res);
   printf("\n");
+
+  print_program(root);
 
   semantic_program(root);
 

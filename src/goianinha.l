@@ -49,11 +49,6 @@ DIGIT   [0-9]+
 "/*"([^*]|\*+[^/])*"*"+"/"     { /* Ignorar comentário válido */ }
 
 \"([^\\\n"]|\\.)*\" { 
-                        yylval.id = (char*)malloc(sizeof(yytext)+1);
-                        if (yylval.id) {
-                        strcpy(yylval.id, yytext);
-                            return check_keyword(yytext);
-                        }
                         return STRING; 
                     }
 
@@ -68,10 +63,10 @@ DIGIT   [0-9]+
             exit(1);
           }
 
-{DIGIT}  {
-            yylval.id = (char*)malloc(sizeof(yytext)+1);
-            if (yylval.id) {
-                strcpy(yylval.id, yytext);
+{DIGIT}  {  
+            yylval.number = (int*)malloc(sizeof(int));
+             if (yylval.number) {
+                yylval.number = atoi(yytext);
                 return INTCONST;
             }
             printf("Erro de memória\n");
