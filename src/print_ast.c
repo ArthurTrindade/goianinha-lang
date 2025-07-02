@@ -198,9 +198,7 @@ void print_params(param_listcount_t *params) {
     return;
 
   param_listcount_t *paramlist = params;
-
   printf("%s, ", paramlist->id);
-
   print_params(params->next);
 }
 

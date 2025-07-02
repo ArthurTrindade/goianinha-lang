@@ -124,7 +124,7 @@ void semantic_program(program_t *node) {
                           current_funcvar->type);
 
         semantic_block(current_env, current_funcvar->decl_func->block,
-                       fun_params);
+                       fun_params, new_func->data_type);
       }
     }
 
@@ -132,7 +132,7 @@ void semantic_program(program_t *node) {
   }
 
   if (node->prog && node->prog->block) {
-    semantic_block(current_env, node->prog->block, NULL);
+    semantic_block(current_env, node->prog->block, NULL, T_UNKNOWN);
   }
 
   semantic_end(current_env);
@@ -156,12 +156,12 @@ void semantic_function(env_t current_env, decl_func_t *node,
     param_node = param_node->next;
   }
 
-  semantic_block(current_env, node->block, NULL);
+  semantic_block(current_env, node->block, NULL, return_type);
 
   env_delete(current_env);
 }
 
-void semantic_block(env_t current_env, block_t *node, list_symbol_t params) {
+void semantic_block(env_t current_env, block_t *node, list_symbol_t params, types_t return_function) {
 
   env_add(current_env, symboltable_new());
   decl_varlist_t *current_varlist = node->var_list;
@@ -200,14 +200,14 @@ void semantic_block(env_t current_env, block_t *node, list_symbol_t params) {
 
   cmd_list_t *current_cmd_list = node->cmd_list;
   while (current_cmd_list) {
-    semantic_cmd(current_env, current_cmd_list->cmd);
+    semantic_cmd(current_env, current_cmd_list->cmd, return_function);
     current_cmd_list = current_cmd_list->next;
   }
 
   env_delete(current_env);
 }
 
-void semantic_cmd(env_t current_env, cmd_t *node) {
+void semantic_cmd(env_t current_env, cmd_t *node, types_t return_function) {
 
   if (node == NULL)
     return;
@@ -216,7 +216,7 @@ void semantic_cmd(env_t current_env, cmd_t *node) {
     semantic_expr(current_env, node->expr);
     break;
   case CMD_BLOCK:
-    semantic_block(current_env, node->blk, NULL);
+    semantic_block(current_env, node->blk, NULL, T_UNKNOWN);
     break;
   case CMD_WHILE:
   case CMD_IF:
@@ -225,9 +225,9 @@ void semantic_cmd(env_t current_env, cmd_t *node) {
     if (cond_type != T_INT) {
       printf("A condição incorreta\n");
     }
-    semantic_cmd(current_env, node->body);
+    semantic_cmd(current_env, node->body, T_UNKNOWN);
     if (node->else_body && node->kind == CMD_IF_ELSE) {
-      semantic_cmd(current_env, node->else_body);
+      semantic_cmd(current_env, node->else_body, T_UNKNOWN);
     }
     break;
   }
@@ -245,6 +245,16 @@ void semantic_cmd(env_t current_env, cmd_t *node) {
     break;
   }
   case CMD_RETORNE: {
+    types_t type = semantic_expr(current_env, node->expr);
+
+    if (type == T_UNKNOWN) {
+        return;
+    }
+
+    if (!(type == return_function)) {
+        report_semantic_error(node->line, "Tipos incompatíveis");
+    }
+
     break;
   }
   case CMD_STRING: {
@@ -296,6 +306,7 @@ types_t semantic_expr(env_t current_env, expr_t *node) {
         args = args->next;
         param_node = param_node->next;
       }
+      return sym->data_type;
     }
 
     return T_UNKNOWN;
@@ -373,7 +384,7 @@ types_t semantic_expr(env_t current_env, expr_t *node) {
       if (operand_type == T_INT) {
         return T_INT;
       }
-      report_semantic_error(node->line, "Tipo inconpatível");
+      report_semantic_error(node->line, "Tipo incompatível");
       return T_UNKNOWN;
     } else if (node->kind == EXPR_MINUS) {
       if (operand_type == T_INT) {
@@ -384,6 +395,24 @@ types_t semantic_expr(env_t current_env, expr_t *node) {
       return T_UNKNOWN;
     }
   }
+  case EXPR_ASSIGN: {
+    symbol_t *lhs_sym = symbol_search(current_env, node->id);
+    if (lhs_sym == NULL || (lhs_sym->symbol_type != T_VAR && lhs_sym->symbol_type != T_PARAM)) {
+        report_semantic_error(node->line, "Atribuição a identificador que não é variável ou parametro");
+    }
+
+    types_t rhs_type = semantic_expr(current_env, node->left);
+
+    if (rhs_type == T_UNKNOWN) {
+        return T_UNKNOWN;
+    }
+
+    if (rhs_type != lhs_sym->data_type) {
+        report_semantic_error(node->line, "Tipos incompatíveis");
+    }
+
+    return lhs_sym->data_type;
+}
 
   default:
     return T_UNKNOWN;

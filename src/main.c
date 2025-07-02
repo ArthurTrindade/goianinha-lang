@@ -4,7 +4,6 @@
 #include "../include/print_ast.h"
 #include "../include/semantic.h"
 
-
 extern FILE *yyin;
 extern int yylineno;
 extern char *yytext;
