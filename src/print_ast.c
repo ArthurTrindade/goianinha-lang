@@ -21,7 +21,7 @@ void print_expr(expr_t *expr) {
     printf("Integer: %d\n", expr->integer_literal);
     break;
   case EXPR_CHAR:
-    printf("Char: %c\n", expr->char_literal);
+    printf("Char: %c\n", *expr->char_literal);
     break;
   case EXPR_ID:
     printf("ID: %s\n", expr->id);
@@ -111,6 +111,10 @@ void print_cmd(cmd_t *cmd) {
   if (!cmd)
     return;
   switch (cmd->kind) {
+  case CMD_EXPR:
+    printf("linha: %d\n", cmd->line);
+    print_expr(cmd->expr);
+    break;
   case CMD_LEIA:
     printf("linha: %d\n", cmd->line);
     printf("Leia variável: %s\n", cmd->id);

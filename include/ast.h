@@ -83,7 +83,7 @@ typedef struct expr {
   expr_e kind;
   char *id;
   int integer_literal;
-  char char_literal;
+  char *char_literal;
   struct expr *left;
   struct expr *right;
   struct expr_list *expr_list;
@@ -95,7 +95,8 @@ typedef struct expr_list {
   struct expr_list *next;
 } expr_list_t;
 
-program_t *ast_program(decl_funcvar_t *funcvar, decl_prog_t *decl_prog, int line);
+program_t *ast_program(decl_funcvar_t *funcvar, decl_prog_t *decl_prog,
+                       int line);
 
 decl_funcvar_t *ast_decl_funcvar(types_t type, char *id, decl_var_t *decl_var,
                                  decl_func_t *decl_func, decl_funcvar_t *next,
@@ -119,8 +120,8 @@ decl_varlist_t *ast_decl_varlist(types_t t, char *id, decl_var_t *var,
 
 cmd_list_t *ast_cmd_list(cmd_t *cmd, cmd_list_t *next, int line);
 
-expr_t *ast_expr(expr_e e, char *id, int const_int, const char const_char,
-                 expr_t *l, expr_t *r, expr_list_t *elist, int line);
+expr_t *ast_expr(expr_e e, char *id, int const_int, char *const_char, expr_t *l,
+                 expr_t *r, expr_list_t *elist, int line);
 
 expr_list_t *ast_expr_list(expr_t *expr, expr_list_t *next, int line);
 

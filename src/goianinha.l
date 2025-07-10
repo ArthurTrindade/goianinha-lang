@@ -70,7 +70,7 @@ DIGIT   [0-9]+
           }
 
 {DIGIT}  {  
-            yylval.number = (int*)malloc(sizeof(int));
+            // yylval.number = (int*)malloc(sizeof(int));
              if (yylval.number) {
                 yylval.number = atoi(yytext);
                 return INTCONST;
@@ -80,9 +80,9 @@ DIGIT   [0-9]+
          }
 
 \'[^']\' { 
-            yylval.c = (char*)malloc(sizeof(int));
+            yylval.c = (char *)malloc(sizeof(char));
             if (yylval.c) {
-                yylval.c = yytext[1];
+                yylval.c = &yytext[1];
                 return CARCONST;
             }
             printf("Erro de memória\n");

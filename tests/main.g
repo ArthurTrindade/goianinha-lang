@@ -3,7 +3,8 @@ int soma(int i, int j) {
     retorne i + j;
 }
 programa {
-    car n;
-    n = 10;
+    int n;
+    n = 'a';
+    leia n;
     escreva "arthur";
 }

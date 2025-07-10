@@ -3,7 +3,8 @@
 
 #include "../include/ast.h"
 
-program_t *ast_program(decl_funcvar_t *funcvar, decl_prog_t *decl_prog, int line) {
+program_t *ast_program(decl_funcvar_t *funcvar, decl_prog_t *decl_prog,
+                       int line) {
 
   program_t *p = (program_t *)malloc(sizeof(program_t));
 
@@ -16,12 +17,11 @@ program_t *ast_program(decl_funcvar_t *funcvar, decl_prog_t *decl_prog, int line
   return p;
 }
 
-
 decl_funcvar_t *ast_decl_funcvar(types_t type, char *id, decl_var_t *decl_var,
-                                 decl_func_t *decl_func, decl_funcvar_t *next, int line) {
+                                 decl_func_t *decl_func, decl_funcvar_t *next,
+                                 int line) {
 
   decl_funcvar_t *df = (decl_funcvar_t *)malloc(sizeof(decl_funcvar_t));
-
 
   if (df) {
     df->type = type;
@@ -251,7 +251,7 @@ cmd_t *ast_cmd_if_else(expr_t *expr, cmd_t *body, cmd_t *else_body, int line) {
   return if_cmd;
 }
 
-expr_t *ast_expr(expr_e e, char *id, int const_int, char const_char, expr_t *l,
+expr_t *ast_expr(expr_e e, char *id, int const_int, char *const_char, expr_t *l,
                  expr_t *r, expr_list_t *elist, int line) {
 
   expr_t *expr = (expr_t *)malloc(sizeof(expr_t));
@@ -260,7 +260,7 @@ expr_t *ast_expr(expr_e e, char *id, int const_int, char const_char, expr_t *l,
     expr->kind = e;
     expr->id = id ? strdup(id) : NULL;
     expr->integer_literal = const_int;
-    expr->char_literal = const_char;
+    expr->char_literal = const_char ? strdup(const_char) : NULL;
     expr->left = l;
     expr->right = r;
     expr->expr_list = elist;

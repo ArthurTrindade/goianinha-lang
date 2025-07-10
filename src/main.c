@@ -8,6 +8,7 @@ extern FILE *yyin;
 extern int yylineno;
 extern char *yytext;
 extern program_t *root;
+extern int yyparse();
 
 int main(int argc, char **argv) {
 
