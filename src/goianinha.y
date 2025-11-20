@@ -6,7 +6,6 @@
 
 #include "../include/ast.h"
 #include "../include/symbol_table.h"
-#include "../include/print_ast.h"
 
 extern int yylex();
 extern int yyparse();
@@ -21,24 +20,17 @@ program_t *root;
 %}
 
 %union {
-  int number;
-  char *c;
-  int line;
-  char *id;
-  program_t *program;
-  decl_funcvar_t *declfv;
-  decl_prog_t *declp;
-  decl_var_t *declvar;
-  decl_func_t *declf;
-  param_list_t *params;
-  param_listcount_t *paramsl;
-  block_t *blk;
-  decl_varlist_t *declvl;
-  cmd_list_t *cmdl;
+  int i_val;
+  char *s_val;
+  program_t *prog;
+  global_decl_t *global;
+  func_decl *func;
+  var_decl_t *var_decl;
+  param_t *param;
+  block_t *block;
   cmd_t *cmd;
   expr_t *expr;
-  expr_list_t *exprl;
-  types_t type;
+
 }
 
 
@@ -46,27 +38,27 @@ program_t *root;
 %token <id> IDENTIFIER STRING
 %token <id> NUMBER
 %token PLUS MINUS COMMA SEMICOLON PROGRAMA LEFT_PAREN RIGHT_PAREN LEFT_BRACE RIGHT_BRACE
-%token RETORNE LEIA ESCREVA ENQUANTO SENAO ENTAO EXECUTE 
+%token RETORNE LEIA ESCREVA ENQUANTO SENAO ENTAO EXECUTE
 %token E OU SE EQUAL EQUAL_EQUAL BANG BANG_EQUAL
 %token LESS LESS_EQUAL GREATER GREATER_EQUAL
-%token STAR SLASH INT CAR NOVALINHA 
-%token <number> INTCONST 
+%token STAR SLASH INT CAR NOVALINHA
+%token <number> INTCONST
 %token <c> CARCONST
 
 /* declarações de símbolos não-terminal inicial */
 %start Programa
-%type <declfv> DeclFuncVar 
+%type <declfv> DeclFuncVar
 %type <declp> DeclProg
-%type <declvar> DeclVar 
-%type <declf> DeclFunc 
+%type <declvar> DeclVar
+%type <declf> DeclFunc
 %type <params> ListaParametros
 %type <paramsl> ListaParametrosCont
-%type <blk> Bloco 
-%type <declvl> ListaDeclVar 
-%type <type> Tipo 
-%type <cmdl> ListaComando 
+%type <blk> Bloco
+%type <declvl> ListaDeclVar
+%type <type> Tipo
+%type <cmdl> ListaComando
 %type <cmd> Comando
-%type <expr> Expr OrExpr AndExpr EqExpr DesigExpr AddExpr MulExpr UnExpr PrimExpr 
+%type <expr> Expr OrExpr AndExpr EqExpr DesigExpr AddExpr MulExpr UnExpr PrimExpr
 %type <exprl> ListExpr
 
 /* regras gramaticais */
@@ -120,17 +112,17 @@ Tipo:
 
 ListaComando:
             Comando { $$ = ast_cmd_list($1, NULL, yylineno); }
-            | Comando ListaComando {  $$ = ast_cmd_list($1, $2, yylineno); } 
+            | Comando ListaComando {  $$ = ast_cmd_list($1, $2, yylineno); }
             ;
 
 Comando:
-       SEMICOLON 
+       SEMICOLON
        | Expr SEMICOLON { $$ = ast_cmd_expr($1, yylineno); }
-       | RETORNE Expr SEMICOLON { $$ = ast_cmd_ret($2, yylineno); } 
+       | RETORNE Expr SEMICOLON { $$ = ast_cmd_ret($2, yylineno); }
        | LEIA IDENTIFIER SEMICOLON { $$ = ast_cmd_leia($2, yylineno); }
        | ESCREVA Expr SEMICOLON    { $$ = ast_cmd_escreva($2, yylineno); }
        | ESCREVA STRING SEMICOLON  { $$ = ast_cmd_string($2, yylineno); }
-       | NOVALINHA SEMICOLON    
+       | NOVALINHA SEMICOLON
        | SE LEFT_PAREN Expr RIGHT_PAREN ENTAO Comando { $$ = ast_cmd_if($3, $6, yylineno); }
        | SE LEFT_PAREN Expr RIGHT_PAREN ENTAO Comando SENAO Comando { $$ = ast_cmd_if_else($3, $6, $8, yylineno); }
        | ENQUANTO LEFT_PAREN Expr RIGHT_PAREN EXECUTE Comando { $$ = ast_cmd_while($3, $6, yylineno); }
@@ -158,7 +150,7 @@ EqExpr:
       | DesigExpr { $$ = $1; }
       ;
 
-DesigExpr: 
+DesigExpr:
          DesigExpr LESS AddExpr { $$ = ast_expr(EXPR_LESS, NULL, 0, 0, $1, $3, NULL, yylineno); }
          | DesigExpr GREATER AddExpr { $$ = ast_expr(EXPR_GREATER, NULL, 0, 0, $1, $3, NULL, yylineno); }
          | DesigExpr GREATER_EQUAL AddExpr { $$ = ast_expr(EXPR_GREATER_EQUAL, NULL, 0, 0, $1, $3, NULL, yylineno); }

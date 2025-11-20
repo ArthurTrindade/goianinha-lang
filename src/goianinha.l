@@ -1,5 +1,6 @@
 %option noyywrap
 %option yylineno
+
 %{
 #include <stdlib.h>
 #include <string.h>
@@ -26,7 +27,7 @@ static struct keyword_map keywords[] = {
     {"novalinha", NOVALINHA},
     {"execute", EXECUTE},
     {"programa", PROGRAMA},
-    {NULL, 0} /* End marker */
+    {NULL, 0}
 };
 
 int check_keyword(const char* id) {
@@ -38,6 +39,22 @@ int check_keyword(const char* id) {
     }
     return IDENTIFIER;
 }
+
+char *strip_quotes(char *text) {
+    int len = strlen(text);
+    if (len < 2) return strdup("");
+
+    char *str = (char*)malloc(len - 1);
+    if (!str) {
+        printf("Erro de memoria\n");
+        exit(1);
+    }
+
+    strncpy(str, text + 1, len - 2);
+    str[len - 2] = '\0';
+    return str;
+}
+
 %}
 
 ID      [a-zA-Z_][a-zA-Z0-9_]*
@@ -48,46 +65,33 @@ DIGIT   [0-9]+
 
 "/*"([^*]|\*+[^/])*"*"+"/"     { /* Ignorar comentário válido */ }
 
-\"([^\\\n"]|\\.)*\" {   
-                    yylval.id = (char*)malloc(sizeof(yytext)+1);
-                    if (yylval.id) {
-                        strcpy(yylval.id, yytext);
-                        return STRING;
-                    }
+\"([^\\\n"]|\\.)*\" {
+    yylval.s_val = strip_quotes(yytext);
+    return STRING;
+}
 
-                    printf("Erro de memória\n");
-                    exit(1);
-            }
-
-{ID}     { 
-            yylval.id = (char*)malloc(sizeof(yytext)+1);
-            if (yylval.id) {
-                strcpy(yylval.id, yytext);
-                return check_keyword(yytext);
-            }
-            printf("Erro de memória\n");
+{ID} {
+    int token = check_keyword(yytext);
+    if (token == IDENTIFIER) {
+        yylval.s_val = strdup(yytext);
+        if (!yyval.s_val) {
+            printf("Out of memory\n");
             exit(1);
-          }
+        }
+    }
+    return token;
+}
 
-{DIGIT}  {  
-            // yylval.number = (int*)malloc(sizeof(int));
-             if (yylval.number) {
-                yylval.number = atoi(yytext);
-                return INTCONST;
-            }
-            printf("Erro de memória\n");
-            exit(1);
-         }
+{DIGIT} {
+    yylval.i_val = atoi(yytext);
+    return INTCONST;
+}
 
-\'[^']\' { 
-            yylval.c = (char *)malloc(sizeof(char));
-            if (yylval.c) {
-                yylval.c = &yytext[1];
-                return CARCONST;
-            }
-            printf("Erro de memória\n");
-            exit(1);
-         }
+\'[^']\' {
+    yylval.i_val = yytext[1];
+    return CARCONST;
+}
+
 "+"      { return PLUS; }
 "-"      { return MINUS; }
 "="      { return EQUAL; }
@@ -117,8 +121,8 @@ DIGIT   [0-9]+
     exit(EXIT_FAILURE);
 }
 
-.        { 
-    fprintf(stderr, "ERRO: CARACTERE INVALIDO '%s' LINHA: %d\n", yytext, yylineno); 
+.        {
+    fprintf(stderr, "ERRO: CARACTERE INVALIDO '%s' LINHA: %d\n", yytext, yylineno);
     exit(EXIT_FAILURE);
 }
 
