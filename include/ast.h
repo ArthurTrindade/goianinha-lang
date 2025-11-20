@@ -1,146 +1,133 @@
 #ifndef AST_H
 #define AST_H
 
+#include <stdint.h>
+
 #include "../include/symbol_table.h"
 #include "../include/types.h"
 
-typedef struct program {
-  int line;
-  struct decl_funcvar *funcvar;
-  struct decl_prog *prog;
-} program_t;
+typedef struct expr expr_t;
+typedef struct cmd cmd_t;
+typedef struct var_decl var_decl_t;
+typedef struct param param_t;
+typedef struct block block_t;
+typedef struct func_decl func_decl_t;
+typedef struct global_decl global_decl_t;
+typedef struct program program_t;
 
-typedef struct decl_funcvar {
-  types_t type;
-  int line;
-  char *id;
-  struct decl_var *decl_var;
-  struct decl_func *decl_func;
-  struct decl_funcvar *next;
-} decl_funcvar_t;
+struct expr {
+    int line;
+    expr_e kind;     // Definie qualc campo da union usar (EXPR_ADD, EXPR_INT)
+    union {
+        int64_t i_val;   // Inteiros Literais
+        char *s_val; // String Literais e Identificadores
+        struct {
+            struct expr *left;
+            struct expr *right;
+        } bin_op;
+        struct {      // chamada de função
+            char *id;
+            struct expr *args; // Lista encadeada de argumentos
+        } call;
+    } data;
 
-typedef struct decl_prog {
-  int line;
-  struct block *block;
-} decl_prog_t;
+    struct expr *next; // Lista de exprs
+};
 
-typedef struct decl_var {
-  int line;
-  char *id;
-  struct decl_var *next;
-} decl_var_t;
+struct cmd {
+    int line;
+    cmd_e kind; // CMD_IF, CMD_WHILE, CMD_ASSIGN
+     union {
+         struct {       // atribuição: id = expr
+             char *id;
+             struct expr *expr;
+         } assing;
+         struct {       // if/else/while
+             struct expr *cond;
+             struct cmd *body;
+             struct cmd *else_body;
+         } control;
+         struct { // escreva/retorne
+             struct expr *expr;
+         } io_expr;
+         struct block *block;
+     } data;
+     struct cmd *next;
+};
 
-typedef struct decl_func {
-  int line;
-  struct param_list *params;
-  struct block *block;
-} decl_func_t;
+struct var_decl {
+    int line;
+    types_t type;
+    char *id;
+    struct var_decl *next;  // Lista encadeada de variáveis
+};
 
-typedef struct param_list {
-  int line;
-  struct param_listcount *param_count;
-} param_list_t;
+struct param {
+    int line;
+    types_t type;
+    char *id;
+    struct param *next; // proximo parametro
+};
 
-typedef struct param_listcount {
-  int line;
-  types_t type;
-  char *id;
-  struct param_listcount *next;
-} param_listcount_t;
+struct block {
+    int line;
+    struct var_decl *vars;
+    struct cmd *cmds;
+};
 
-typedef struct block {
-  int line;
-  struct decl_varlist *var_list;
-  struct cmd_list *cmd_list;
-} block_t;
+struct func_decl {
+    int line;
+    char *id;
+    types_t ret_type;
+    struct param *params;
+    struct block *block;
+};
 
-typedef struct decl_varlist {
-  int line;
-  types_t type;
-  char *id;
-  struct decl_var *var;
-  struct decl_varlist *next;
-} decl_varlist_t;
+struct global_decl {
+    int line;
+    // global_kind_e
+    union {
+        struct var_decl *var;
+        struct func_decl *func;
+    } decl;
+    struct global_decl *next;
+};
 
-typedef struct cmd_list {
-  int line;
-  struct cmd *cmd;
-  struct cmd_list *next;
-} cmd_list_t;
 
-typedef struct cmd {
-  cmd_e kind;
-  int line;
-  char *id;
-  struct expr *expr;
-  struct block *blk;
-  struct cmd *body;
-  struct cmd *else_body;
-} cmd_t;
+struct program {
+    int line;
+    struct global_decl *globais;
+    struct block *main_block;
+};
 
-typedef struct expr {
-  int line;
-  expr_e kind;
-  char *id;
-  int integer_literal;
-  char *char_literal;
-  struct expr *left;
-  struct expr *right;
-  struct expr_list *expr_list;
-} expr_t;
+/* Construtores de Expressões */
+expr_t *ast_expr_literal_int(int value, int line);
+expr_t *ast_expr_literal_string(char *value, int line); // Serve para ID também
+expr_t *ast_expr_binary(expr_e kind, expr_t *left, expr_t *right, int line);
+expr_t *ast_expr_call(char *id, expr_t *args, int line);
 
-typedef struct expr_list {
-  int line;
-  struct expr *expr;
-  struct expr_list *next;
-} expr_list_t;
-
-program_t *ast_program(decl_funcvar_t *funcvar, decl_prog_t *decl_prog,
-                       int line);
-
-decl_funcvar_t *ast_decl_funcvar(types_t type, char *id, decl_var_t *decl_var,
-                                 decl_func_t *decl_func, decl_funcvar_t *next,
-                                 int line);
-
-decl_prog_t *ast_decl_prog(block_t *blk, int line);
-
-decl_var_t *ast_decl_var(char *id, decl_var_t *next, int line);
-
-decl_func_t *ast_decl_func(param_list_t *params, block_t *blk, int line);
-
-param_list_t *ast_param_list(param_listcount_t *plc, int line);
-
-param_listcount_t *ast_param_listcount(types_t t, char *id,
-                                       param_listcount_t *next, int line);
-
-block_t *ast_block(decl_varlist_t *dvl, cmd_list_t *cmdl, int line);
-
-decl_varlist_t *ast_decl_varlist(types_t t, char *id, decl_var_t *var,
-                                 decl_varlist_t *next, int line);
-
-cmd_list_t *ast_cmd_list(cmd_t *cmd, cmd_list_t *next, int line);
-
-expr_t *ast_expr(expr_e e, char *id, int const_int, char *const_char, expr_t *l,
-                 expr_t *r, expr_list_t *elist, int line);
-
-expr_list_t *ast_expr_list(expr_t *expr, expr_list_t *next, int line);
-
-cmd_t *ast_cmd_expr(expr_t *expr, int line);
-
-cmd_t *ast_cmd_block(block_t *blk, int line);
-
-cmd_t *ast_cmd_while(expr_t *expr, cmd_t *body, int line);
-
-cmd_t *ast_cmd_if(expr_t *expr, cmd_t *body, int line);
-
-cmd_t *ast_cmd_if_else(expr_t *expr, cmd_t *body, cmd_t *else_body, int line);
-
-cmd_t *ast_cmd_leia(char *id, int line);
-
-cmd_t *ast_cmd_escreva(expr_t *expr, int line);
-
-cmd_t *ast_cmd_string(char *id, int line);
-
+/* Construtores de Comandos */
+cmd_t *ast_cmd_assign(char *id, expr_t *expr, int line);
+cmd_t *ast_cmd_if(expr_t *cond, cmd_t *body, cmd_t *else_body, int line);
+cmd_t *ast_cmd_while(expr_t *cond, cmd_t *body, int line);
 cmd_t *ast_cmd_ret(expr_t *expr, int line);
+cmd_t *ast_cmd_leia(char *id, int line);
+cmd_t *ast_cmd_escreva(expr_t *expr, int line);
+cmd_t *ast_cmd_block(block_t *blk, int line); // Comando que encapsula um bloco
+
+/* Construtores Estruturais */
+var_decl_t *ast_decl_var(types_t type, char *id, int line);
+param_t *ast_param(types_t type, char *id, int line);
+block_t *ast_block(var_decl_t *vars, cmd_t *cmds, int line);
+func_decl_t *ast_decl_func(types_t type, char *id, param_t *params, block_t *blk, int line);
+
+/* Construtores Globais/Raiz */
+global_decl_t *ast_global_var(var_decl_t *var, int line);
+global_decl_t *ast_global_func(func_decl_t *func, int line);
+program_t *ast_program(global_decl_t *globals, block_t *main_block, int line);
+
+/* Funções auxiliares de lista (opcional, mas útil) */
+void ast_append_cmd(cmd_t *head, cmd_t *new_node);
+void ast_append_global(global_decl_t *head, global_decl_t *new_node);
 
 #endif

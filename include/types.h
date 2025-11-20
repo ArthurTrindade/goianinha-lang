@@ -1,110 +1,63 @@
 /*
- * token_types.h
- * Definição dos tipos de tokens para o analisador léxico
+ * types.h
+ * Definições de enums para os tipos de nós da AST e tipos de dados da linguagem.
  */
 
 #ifndef TYPES_H
 #define TYPES_H
 
+/* * 1. Tipos de Comandos (Statements)
+ * Define o que um nó de comando está fazendo.
+ */
 typedef enum {
-  CMD_EXPR,
-  CMD_IF,
-  CMD_IF_ELSE,
-  CMD_WHILE,
-  CMD_BLOCK,
-  CMD_LEIA,
-  CMD_ESCREVA,
-  CMD_RETORNE,
-  CMD_STRING
+  CMD_ASSIGN,   /* Atribuição (x = 10) */
+  CMD_IF,       /* Se */
+  CMD_WHILE,    /* Enquanto */
+  CMD_RETURN,   /* Retorne */
+  CMD_BLOCK,    /* Bloco de código { ... } */
+  CMD_LEIA,     /* Comando de entrada */
+  CMD_ESCREVA,  /* Comando de saída */
+  CMD_EXPR,     /* Expressão usada como comando (ex: chamada de função) */
+  CMD_EMPTY     /* ; (comando vazio) */
 } cmd_e;
 
+/* * 2. Tipos de Expressões
+ * Define a operação ou o valor contido no nó.
+ */
 typedef enum {
-  EXPR_ID,
-  EXPR_ADD,
-  EXPR_SUB,
-  EXPR_MUL,
-  EXPR_DIV,
-  EXPR_EQUAL,
-  EXPR_NOT,
-  EXPR_LESS,          
-  EXPR_OR,
-  EXPR_AND,
-  EXPR_DIFF,
-  EXPR_LESS_EQUAL,    
-  EXPR_GREATER,       
-  EXPR_GREATER_EQUAL, 
-  EXPR_ASSIGN,
-  EXPR_BIN_OP,
-  EXPR_UN_OP,
-  EXPR_MINUS,
-  EXPR_INT,
-  EXPR_CHAR,
-  EXPR_STRING,
-  EXPR_UNKNOWN
+  /* Literais e Terminais */
+  EXPR_LIT_INT,     /* 10, 20, -5 */
+  EXPR_LIT_STRING,  /* "texto", ou identificador de variável 'x' */
+  EXPR_CALL,        /* Chamada de função: soma(1, 2) */
+
+  /* Operações Aritméticas */
+  EXPR_ADD,         /* + */
+  EXPR_SUB,         /* - */
+  EXPR_MUL,         /* * */
+  EXPR_DIV,         /* / */
+
+  /* Operações Lógicas e Relacionais */
+  EXPR_AND,            /* E */
+  EXPR_OR,             /* OU */
+  EXPR_NOT,            /* ! */
+  EXPR_EQUAL,          /* == */
+  EXPR_DIFF,           /* != */
+  EXPR_LESS,           /* < */
+  EXPR_GREATER,        /* > */
+  EXPR_LESS_EQUAL,     /* <= */
+  EXPR_GREATER_EQUAL   /* >= */
 } expr_e;
 
-/*
- * Esta enumeração define todos os tipos de tokens reconhecidos
- * pelo analisador léxico. Os valores são usados tanto pelo scanner
- * quanto pelo parser.
+/* * 3. Tipos de Dados da Linguagem (Data Types)
+ * Usado para definir o tipo de variáveis e retornos de função.
+ * Removemos todos os TOKENS (T_PLUS, T_WHILE, etc), pois o Bison cuida deles.
  */
-typedef enum types_ {
-
-  /* Identificadores e literais */
-  T_IDENTIFIER, /* Identificador (nome de variável/função) */
-  T_NUMBER,     /* Literal numérico */
-  T_STRING,     /* Literal string (entre aspas) */
-
-  /* Tipos */
-  T_VAR,
-  T_FUNCTION,
-  T_PARAM,
-  T_LOCAL,
-  T_GLOBAL,
-  /* Operadores */
-  T_PLUS,          /* + */
-  T_MINUS,         /* - */
-  T_STAR,          /* * */
-  T_SLASH,         /* / */
-  T_EQUAL,         /* = */
-  T_EQUAL_EQUAL,   /* == */
-  T_BANG,          /* ! */
-  T_BANG_EQUAL,    /* != */
-  T_LESS,          /* < */
-  T_LESS_EQUAL,    /* <= */
-  T_GREATER,       /* > */
-  T_GREATER_EQUAL, /* >= */
-
-  /* Delimitadores */
-  T_LEFT_PAREN,  /* ( */
-  T_RIGHT_PAREN, /* ) */
-  T_LEFT_BRACE,  /* { */
-  T_RIGHT_BRACE, /* } */
-  T_SEMICOLON,   /* ; */
-  T_COMMA,       /* , */
-
-  /* Palavras-chave */
-  T_SE,    /* se */
-  T_ENTAO, /* entao */
-  T_SENAO, /* senao */
-  T_SE_ENTAO,
-  T_ENQUANTO,  /* enquanto */
-  T_RETORNE,   /* retorne */
-  T_CAR,       /* car */
-  T_INT,       /* int */
-  T_BOOL,
-  T_LEIA,      /* leia */
-  T_ESCREVA,   /* escreva */
-  T_NOVALINHA, /* novalinha */
-  T_EXECUTE,   /* execute */
-  T_PROGRAMA,  /* programa */
-
-  T_EXPR,
-  T_BLOCK,
-  T_AND,
-  T_OR,
-
-  T_UNKNOWN
+typedef enum {
+  T_INT,    /* Tipo inteiro */
+  T_CAR,    /* Tipo caractere */
+  T_STRING, /* Tipo string (se sua linguagem suportar como tipo) */
+  T_VOID,   /* Retorno vazio (se houver) */
+  T_ERROR   /* Usado para verificação de tipos (Type Checking) */
 } types_t;
 
 #endif /* TYPES_H */
