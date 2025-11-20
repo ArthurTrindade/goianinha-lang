@@ -30,36 +30,29 @@ program_t *root;
   block_t *block;
   cmd_t *cmd;
   expr_t *expr;
-
+  types_t type;
 }
 
-
 /* declarações de símbolos terminais */
-%token <id> IDENTIFIER STRING
-%token <id> NUMBER
+%token <s_val> IDENTIFIER STRING
+%token <i_val> INTCONST CARCONST
+
 %token PLUS MINUS COMMA SEMICOLON PROGRAMA LEFT_PAREN RIGHT_PAREN LEFT_BRACE RIGHT_BRACE
 %token RETORNE LEIA ESCREVA ENQUANTO SENAO ENTAO EXECUTE
 %token E OU SE EQUAL EQUAL_EQUAL BANG BANG_EQUAL
 %token LESS LESS_EQUAL GREATER GREATER_EQUAL
 %token STAR SLASH INT CAR NOVALINHA
-%token <number> INTCONST
-%token <c> CARCONST
 
 /* declarações de símbolos não-terminal inicial */
 %start Programa
-%type <declfv> DeclFuncVar
-%type <declp> DeclProg
-%type <declvar> DeclVar
-%type <declf> DeclFunc
-%type <params> ListaParametros
-%type <paramsl> ListaParametrosCont
-%type <blk> Bloco
-%type <declvl> ListaDeclVar
+%type <gobal> DeclFuncVar
+%type <block> DeclProg Bloco
+%type <var_decl> DeclVar ListaDeclVar
+%type <func> DeclFunc
+%type <param> ListaParametros ListaParametrosCont
 %type <type> Tipo
-%type <cmdl> ListaComando
-%type <cmd> Comando
-%type <expr> Expr OrExpr AndExpr EqExpr DesigExpr AddExpr MulExpr UnExpr PrimExpr
-%type <exprl> ListExpr
+%type <cmd> ListaComando Comando
+%type <expr> Expr OrExpr AndExpr EqExpr DesigExpr AddExpr MulExpr UnExpr PrimExpr ListExpr
 
 /* regras gramaticais */
 %%
@@ -68,41 +61,111 @@ Programa:
         ;
 
 DeclFuncVar:
-           Tipo IDENTIFIER DeclVar SEMICOLON DeclFuncVar {  $$ = ast_decl_funcvar($1, $2, $3, NULL, $5, yylineno); }
-           | Tipo IDENTIFIER DeclFunc DeclFuncVar { $$ = ast_decl_funcvar($1, $2, NULL, $3, $4, yylineno); }
+           DeclFuncVar Tipo IDENTIFIER DeclVar SEMICOLON {
+                var_decl_t *v = ast_decl_var($2, $3, yylineno);
+                v->next = $4;
+
+                global_decl_t *g = ast_global_var(v, yylineno);
+                
+                if ($1 != NULL) {
+                    global_decl_t *aux = $1;
+                    while (aux->next != NULL) {
+                        temp = temp->next;
+                    }
+                    aux->next = g;
+                    $$ = $1;
+                } else {
+                    $$ = g;
+                }
+            }
+           | DeclFuncVar Tipo IDENTIFIER DeclFunc { 
+                $4->ret_type = $2;
+                $4->id = $3;
+
+                global_decl_t *g = ast_global_func($4, yylineno);
+                
+                if ($1 != NULL) {
+                    global_decl_t *aux = $1;
+                    while (aux->next != NULL) {
+                        aux = aux->next;
+                    }
+                    aux->next = g;
+                    $$ = $1;
+                } else {
+                    $$ = g;
+                }
+            
+            }
            | /* vazio */ { $$ = NULL; }
            ;
 
 DeclProg:
-        PROGRAMA Bloco { $$ = ast_decl_prog($2, yylineno); }
+        PROGRAMA Bloco { $$ = $2; }
         ;
 
 DeclVar:
-       COMMA IDENTIFIER DeclVar { $$ = ast_decl_var($2, $3, yylineno); }
-       | /* vazio */ { $$ = ast_decl_var(NULL, NULL, yylineno); }
+       COMMA IDENTIFIER DeclVar { 
+            $$ = ast_decl_var(T_INT, $2, yylineno);
+            $$->next = $3;
+        
+        }
+       | /* vazio */ { $$ = NULL; }
        ;
 
 DeclFunc:
-        LEFT_PAREN ListaParametros RIGHT_PAREN Bloco { $$ = ast_decl_func($2, $4, yylineno); }
+        LEFT_PAREN ListaParametros RIGHT_PAREN Bloco {
+             $$ = ast_decl_func(T_INT, NULL, $2, $4, yylineno); 
+        }
         ;
 
 ListaParametros:
                /* vazio */ { $$ = NULL;}
-               | ListaParametrosCont { $$ = ast_param_list($1, yylineno); }
+               | ListaParametrosCont { $$ = $1; }
                ;
 
 ListaParametrosCont:
-                   Tipo IDENTIFIER { $$ = ast_param_listcount($1, $2, NULL, yylineno); }
-                   | Tipo IDENTIFIER COMMA ListaParametrosCont { $$ = ast_param_listcount($1, $2, $4, yylineno); }
+                   Tipo IDENTIFIER { 
+                        $$ = ast_param($1, $2, yylineno);
+                    }
+                   | ListaParametrosCont COMMA Tipo IDENTIFIER { 
+                        param_t *p = ast_param($3, $4, yylineno);
+                        param_t *aux = $1;
+                        while (aux->next != NULL) {
+                            aux = aux->next; 
+                        }
+                        aux->next = p;
+                        $$ = $1;
+                    }
                    ;
 
 Bloco:
-     LEFT_BRACE ListaDeclVar ListaComando RIGHT_BRACE { $$ = ast_block($2, $3, yylineno); }
+     LEFT_BRACE ListaDeclVar ListaComando RIGHT_BRACE { 
+        $$ = ast_block($2, $3, yylineno); 
+    }
      ;
 
 ListaDeclVar:
             /* vazio */ { $$ = NULL; }
-            | Tipo IDENTIFIER DeclVar SEMICOLON ListaDeclVar { $$ = ast_decl_varlist($1, $2, $3, $5, yylineno); }
+            | DeclFuncVar Tipo IDENTIFIER DeclVar SEMICOLON { 
+                var_decl_t *v = ast_decl_var($2, $3, yylineno);
+                var_decl_t *rest = $4;
+                while (rest != NULL) {
+                    rest->type = $2;
+                    rest = rest->next;
+                } 
+                v->next = $4;
+
+                if ($1 != NULL) {
+                    var_decl_t *aux = $1;
+                    while (aux->next != NULL) {
+                        aux = aux->next;
+                    }
+                    aux->next = v;
+                    $$ = $1;
+                } else {
+                    $$ = v;
+                }
+            }
             ;
 
 Tipo:
@@ -111,18 +174,27 @@ Tipo:
     ;
 
 ListaComando:
-            Comando { $$ = ast_cmd_list($1, NULL, yylineno); }
-            | Comando ListaComando {  $$ = ast_cmd_list($1, $2, yylineno); }
+            Comando { $$ = $1; }
+            | ListaComando Comando { 
+                ast_append_cmd($1, $2);
+                $$ = $1;
+             }
             ;
 
 Comando:
-       SEMICOLON
+       SEMICOLON { $$ = NULL; }
        | Expr SEMICOLON { $$ = ast_cmd_expr($1, yylineno); }
        | RETORNE Expr SEMICOLON { $$ = ast_cmd_ret($2, yylineno); }
        | LEIA IDENTIFIER SEMICOLON { $$ = ast_cmd_leia($2, yylineno); }
        | ESCREVA Expr SEMICOLON    { $$ = ast_cmd_escreva($2, yylineno); }
-       | ESCREVA STRING SEMICOLON  { $$ = ast_cmd_string($2, yylineno); }
-       | NOVALINHA SEMICOLON
+       | ESCREVA STRING SEMICOLON  { 
+            expr_t *s = ast_expr_literal_string($2, yylineno);
+            $$ = ast_cmd_escreva($2, yylineno); 
+        }
+       | NOVALINHA SEMICOLON {
+            expr_t *nl = ast_expr_literal_string("\n", yylineno);
+            $$ = ast_cmd_escreva(nl, yylineno);
+       }
        | SE LEFT_PAREN Expr RIGHT_PAREN ENTAO Comando { $$ = ast_cmd_if($3, $6, yylineno); }
        | SE LEFT_PAREN Expr RIGHT_PAREN ENTAO Comando SENAO Comando { $$ = ast_cmd_if_else($3, $6, $8, yylineno); }
        | ENQUANTO LEFT_PAREN Expr RIGHT_PAREN EXECUTE Comando { $$ = ast_cmd_while($3, $6, yylineno); }
@@ -131,63 +203,74 @@ Comando:
 
 Expr:
     OrExpr  { $$ = $1; }
-    | IDENTIFIER EQUAL Expr  { $$ = ast_expr(EXPR_ASSIGN, $1, 0, 0, $3, NULL, NULL, yylineno); }
+    | IDENTIFIER EQUAL Expr  { $$ = ast_expr_assign($1, $3, yylineno); }
     ;
 
 OrExpr:
-      OrExpr OU AndExpr  { $$ = ast_expr(EXPR_OR, NULL, 0, 0, $1, $3, NULL, yylineno); }
+      OrExpr OU AndExpr  { $$ = ast_expr_binary(EXPR_OR, $1, $3, yylineno); }
       | AndExpr  { $$ = $1; }
       ;
 
 AndExpr:
-       AndExpr E EqExpr { $$ = ast_expr(EXPR_AND, NULL, 0, 0, $1, $3, NULL, yylineno); }
+       AndExpr E EqExpr { $$ = ast_expr_binary(EXPR_AND, $1, $3, yylineno); }
        | EqExpr  { $$ = $1; }
        ;
 
 EqExpr:
-      EqExpr EQUAL_EQUAL DesigExpr { $$ = ast_expr(EXPR_EQUAL, NULL, 0, 0, $1, $3, NULL, yylineno); }
-      | EqExpr BANG_EQUAL DesigExpr { $$ = ast_expr(EXPR_DIFF, NULL, 0, 0, $1, $3, NULL, yylineno); }
+      EqExpr EQUAL_EQUAL DesigExpr { $$ = ast_expr_binary(EXPR_EQUAL, $1, $3, yylineno); }
+      | EqExpr BANG_EQUAL DesigExpr { $$ = ast_expr_binary(EXPR_DIFF, $1, $3, yylineno); }
       | DesigExpr { $$ = $1; }
       ;
 
 DesigExpr:
-         DesigExpr LESS AddExpr { $$ = ast_expr(EXPR_LESS, NULL, 0, 0, $1, $3, NULL, yylineno); }
-         | DesigExpr GREATER AddExpr { $$ = ast_expr(EXPR_GREATER, NULL, 0, 0, $1, $3, NULL, yylineno); }
-         | DesigExpr GREATER_EQUAL AddExpr { $$ = ast_expr(EXPR_GREATER_EQUAL, NULL, 0, 0, $1, $3, NULL, yylineno); }
-         | DesigExpr LESS_EQUAL AddExpr { $$ = ast_expr(EXPR_LESS_EQUAL, NULL, 0, 0, $1, $3, NULL, yylineno); }
+         DesigExpr LESS AddExpr {  $$ = ast_expr_binary(EXPR_LESS, $1, $3, yylineno); }
+         | DesigExpr GREATER AddExpr { $$ = ast_expr_binary(EXPR_GREATER, $1, $3, yylineno); }
+         | DesigExpr GREATER_EQUAL AddExpr { $$ = ast_expr_binary(EXPR_GREATER_EQUAL, $1, $3, yylineno); }
+         | DesigExpr LESS_EQUAL AddExpr { $$ = ast_expr_binary(EXPR_LESS_EQUAL, $1, $3, yylineno); }
          | AddExpr { $$ = $1; }
          ;
 
 AddExpr:
-       AddExpr PLUS MulExpr { $$ = ast_expr(EXPR_ADD, NULL, 0, 0, $1, $3, NULL, yylineno); }
-       | AddExpr MINUS MulExpr { $$ = ast_expr(EXPR_SUB, NULL, 0, 0, $1, $3, NULL, yylineno); }
+       AddExpr PLUS MulExpr { $$ = ast_expr_binary(EXPR_ADD, $1, $3, yylineno); }
+       | AddExpr MINUS MulExpr { $$ = ast_expr_binary(EXPR_SUB, $1, $3, yylineno); }
        | MulExpr { $$ = $1; }
        ;
 
 MulExpr:
-       MulExpr STAR UnExpr { $$ = ast_expr(EXPR_MUL, NULL, 0, 0, $1, $3, NULL, yylineno); }
-       | MulExpr SLASH UnExpr { $$ = ast_expr(EXPR_DIV, NULL, 0, 0, $1, $3, NULL, yylineno); }
+       MulExpr STAR UnExpr { $$ = ast_expr_binary(EXPR_MUL, $1, $3, yylineno); }
+       | MulExpr SLASH UnExpr { $$ = ast_expr_binary(EXPR_DIV, $1, $3, yylineno); }
        | UnExpr { $$ = $1; }
        ;
 
 UnExpr:
-      MINUS PrimExpr { $$ = ast_expr(EXPR_MINUS, NULL, 0, 0, $2, NULL, NULL, yylineno); }
-      | BANG PrimExpr { $$ = ast_expr(EXPR_NOT, NULL, 0, 0, $2, NULL, NULL, yylineno); }
+      MINUS PrimExpr { 
+             $$ = ast_expr_binary(EXPR_SUB, ast_expr_literal_int(0, yylineno), $2, yylineno);
+        }
+      | BANG PrimExpr { 
+            $$ = ast_expr_call("!", $2, yylineno);
+       }
       | PrimExpr { $$ = $1; }
       ;
 
 PrimExpr:
-        IDENTIFIER LEFT_PAREN ListExpr RIGHT_PAREN { $$ = ast_expr(EXPR_ID, $1, 0, 0, NULL, NULL, $3, yylineno); }
-        | IDENTIFIER LEFT_PAREN RIGHT_PAREN { $$ = ast_expr(EXPR_ID, $1, 0, 0, NULL, NULL, NULL, yylineno); }
-        | IDENTIFIER { $$ = ast_expr(EXPR_ID, $1, 0, 0, NULL, NULL, NULL, yylineno); }
-        | CARCONST   { $$ = ast_expr(EXPR_CHAR, NULL, 0, $1, NULL, NULL, NULL, yylineno); }
-        | INTCONST   { $$ = ast_expr(EXPR_INT, NULL, $1, 0, NULL, NULL, NULL, yylineno); }
+        IDENTIFIER LEFT_PAREN ListExpr RIGHT_PAREN { $$ = ast_expr_call($1, $3, yylineno); }
+        | IDENTIFIER LEFT_PAREN RIGHT_PAREN { $$ = ast_expr_call($1, NULL, yylineno); }
+        | IDENTIFIER { $$ = ast_expr_literal_string($1, yylineno); }
+        | CARCONST   { $$ = ast_expr_literal_int($1, yylineno); }
+        | INTCONST   { $$ = ast_expr_literal_int($1, yylineno); }
         | LEFT_PAREN Expr RIGHT_PAREN { $$ = $2; }
         ;
 
 ListExpr:
-        Expr { $$ = ast_expr_list($1, NULL, yylineno); }
-        | ListExpr COMMA Expr { $$ = ast_expr_list($3, $1, yylineno); }
+        Expr { $$ = $1; }
+        | ListExpr COMMA Expr { 
+            expr_t *aux = $1;
+            while (aux->next != NULL) {
+                aux = aux->next;
+            }
+            aux->next = $3;
+            $$ = $1;          
+         }
         ;
 %%
 
