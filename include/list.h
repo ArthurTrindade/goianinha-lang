@@ -21,7 +21,7 @@ typedef struct list_t {
  * Inicializa uma lista duplamente ligada especificada de lista
  * o arg destroy providencia uma maneira de liberar dinamicamente a memoria
  * quando list_destroy for chamada
- * return NONE
+ * return NULL
  */
 void list_init(list_t *list, void (*destroy)(void *data));
 

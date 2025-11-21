@@ -3,6 +3,7 @@
 #include "../include/ast.h"
 #include "../include/print_ast.h"
 #include "../include/symbol_table.h"
+#include "../include/semantic.h"
 
 extern FILE *yyin;
 extern int yylineno;
@@ -59,7 +60,7 @@ int main(int argc, char **argv) {
   /* Análise Semântica */
   printf("--- [2/3] Iniciando Analise Semantica ---\n");
   if (root) {
-    // semantic_program(root);
+    semantic_program(root);
   }
   printf(">> Sucesso: Analise semantica concluida.\n\n");
   if (argc > 1 && yyin)

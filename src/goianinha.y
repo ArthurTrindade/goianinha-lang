@@ -6,6 +6,7 @@
 
 #include "../include/ast.h"
 #include "../include/symbol_table.h"
+#include "../include/semantic.h"
 
 extern int yylex();
 extern int yyparse();
@@ -15,6 +16,7 @@ extern int yylineno;
 
 void yyerror(const char *s);
 
+env_t *env;
 program_t *root;
 
 %}

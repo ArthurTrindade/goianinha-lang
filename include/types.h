@@ -19,7 +19,7 @@ typedef enum {
   CMD_LEIA,    /* Comando de entrada */
   CMD_ESCREVA, /* Comando de saída */
   CMD_EXPR,    /* Expressão usada como comando (ex: chamada de função) */
-  CMD_EMPTY    /* ; (comando vazio) */
+  // CMD_EMPTY    /* ; (comando vazio) */
 } cmd_e;
 
 /* * 2. Tipos de Expressões

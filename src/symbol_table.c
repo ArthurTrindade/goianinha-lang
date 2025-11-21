@@ -31,7 +31,6 @@ void symbol_free(void *item) {
     list_destroy(s->info.func.params);
   }
 
-  free(s);
 }
 
 env_t env_new(void) {
