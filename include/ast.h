@@ -157,5 +157,6 @@ program_t *ast_program(global_decl_t *globals, block_t *main_block, int line);
 
 /* Auxiliar */
 void ast_append_cmd(cmd_t *head, cmd_t *new_node);
+void* safe_alloc(size_t size);
 
 #endif

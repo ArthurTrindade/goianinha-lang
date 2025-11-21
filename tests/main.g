@@ -1,6 +1,7 @@
 
 programa {
     int n;
-    n = 10 + 1;
+    leia n;
+    n = 'a';
     escreva n;
 }

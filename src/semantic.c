@@ -46,7 +46,7 @@ void register_var(env_t env, char *id, types_t type, int line) {
 list_t *extract_params_from_ast(param_t *ast_params) {
   list_t *l = NULL;
   list_init(l, symbol_free);
-  param_t *p = ast_param;
+  param_t *p = ast_params;
   while (p != NULL) {
     symbol_t *s = symbol_new_var(p->id, SYM_PARAM, p->type, 0, p->line);
     list_insert_end(l, s);
