@@ -1,5 +1,6 @@
 
 programa {
-    leia n;
-    escreva "arthur";
+    int n;
+    n = 10 + 1;
+    escreva n;
 }

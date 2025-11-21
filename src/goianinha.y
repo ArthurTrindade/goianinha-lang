@@ -185,7 +185,7 @@ ListaComando:
 
 Comando:
        SEMICOLON { $$ = NULL; }
-       | Expr SEMICOLON { $$ = ast_cmd_assign(NULL, $1, yylineno); }
+       | Expr SEMICOLON { $$ = ast_cmd_expr($1, yylineno); }
        | RETORNE Expr SEMICOLON { $$ = ast_cmd_ret($2, yylineno); }
        | LEIA IDENTIFIER SEMICOLON { $$ = ast_cmd_leia($2, yylineno); }
        | ESCREVA Expr SEMICOLON    { $$ = ast_cmd_escreva($2, yylineno); }

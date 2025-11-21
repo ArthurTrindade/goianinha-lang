@@ -142,6 +142,7 @@ cmd_t *ast_cmd_ret(expr_t *expr, int line);
 cmd_t *ast_cmd_leia(char *id, int line);
 cmd_t *ast_cmd_escreva(expr_t *expr, int line);
 cmd_t *ast_cmd_block(block_t *blk, int line);
+cmd_t *ast_cmd_expr(expr_t *expr, int line);
 
 /* Estruturais */
 var_decl_t *ast_decl_var(types_t type, char *id, int line);

@@ -120,6 +120,14 @@ cmd_t *ast_cmd_block(block_t *blk, int line) {
     return node;
 }
 
+cmd_t *ast_cmd_expr(expr_t *expr, int line) {
+    cmd_t *node = (cmd_t *)safe_alloc(sizeof(cmd_t));
+    node->kind = CMD_EXPR;
+    node->data.io_expr.expr = expr;
+    node->line = line;
+    return node;
+}
+
 /* --- ESTRUTURAIS --- */
 
 var_decl_t *ast_decl_var(types_t type, char *id, int line) {

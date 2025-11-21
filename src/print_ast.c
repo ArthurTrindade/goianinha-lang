@@ -44,6 +44,13 @@ void print_expr(expr_t *expr) {
             printf("%s", expr->data.s_val);
             break;
 
+        case EXPR_ASSIGN: {
+            printf("\nAtribuicao: %s = ", expr->data.assign.id);
+            print_expr(expr->data.assign.expr);
+            printf("\n");
+            break;
+        }
+
         case EXPR_CALL:
             printf("%s(", expr->data.call.id);
             expr_t *arg = expr->data.call.args;
