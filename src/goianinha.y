@@ -24,7 +24,7 @@ program_t *root;
   char *s_val;
   program_t *prog;
   global_decl_t *global;
-  func_decl *func;
+  func_decl_t *func;
   var_decl_t *var_decl;
   param_t *param;
   block_t *block;
@@ -45,7 +45,7 @@ program_t *root;
 
 /* declarações de símbolos não-terminal inicial */
 %start Programa
-%type <gobal> DeclFuncVar
+%type <global> DeclFuncVar
 %type <block> DeclProg Bloco
 %type <var_decl> DeclVar ListaDeclVar
 %type <func> DeclFunc
@@ -66,24 +66,7 @@ DeclFuncVar:
                 v->next = $4;
 
                 global_decl_t *g = ast_global_var(v, yylineno);
-                
-                if ($1 != NULL) {
-                    global_decl_t *aux = $1;
-                    while (aux->next != NULL) {
-                        temp = temp->next;
-                    }
-                    aux->next = g;
-                    $$ = $1;
-                } else {
-                    $$ = g;
-                }
-            }
-           | DeclFuncVar Tipo IDENTIFIER DeclFunc { 
-                $4->ret_type = $2;
-                $4->id = $3;
 
-                global_decl_t *g = ast_global_func($4, yylineno);
-                
                 if ($1 != NULL) {
                     global_decl_t *aux = $1;
                     while (aux->next != NULL) {
@@ -94,7 +77,24 @@ DeclFuncVar:
                 } else {
                     $$ = g;
                 }
-            
+            }
+           | DeclFuncVar Tipo IDENTIFIER DeclFunc {
+                $4->ret_type = $2;
+                $4->id = $3;
+
+                global_decl_t *g = ast_global_func($4, yylineno);
+
+                if ($1 != NULL) {
+                    global_decl_t *aux = $1;
+                    while (aux->next != NULL) {
+                        aux = aux->next;
+                    }
+                    aux->next = g;
+                    $$ = $1;
+                } else {
+                    $$ = g;
+                }
+
             }
            | /* vazio */ { $$ = NULL; }
            ;
@@ -104,17 +104,17 @@ DeclProg:
         ;
 
 DeclVar:
-       COMMA IDENTIFIER DeclVar { 
+       COMMA IDENTIFIER DeclVar {
             $$ = ast_decl_var(T_INT, $2, yylineno);
             $$->next = $3;
-        
+
         }
        | /* vazio */ { $$ = NULL; }
        ;
 
 DeclFunc:
         LEFT_PAREN ListaParametros RIGHT_PAREN Bloco {
-             $$ = ast_decl_func(T_INT, NULL, $2, $4, yylineno); 
+             $$ = ast_decl_func(T_INT, NULL, $2, $4, yylineno);
         }
         ;
 
@@ -124,14 +124,14 @@ ListaParametros:
                ;
 
 ListaParametrosCont:
-                   Tipo IDENTIFIER { 
+                   Tipo IDENTIFIER {
                         $$ = ast_param($1, $2, yylineno);
                     }
-                   | ListaParametrosCont COMMA Tipo IDENTIFIER { 
+                   | ListaParametrosCont COMMA Tipo IDENTIFIER {
                         param_t *p = ast_param($3, $4, yylineno);
                         param_t *aux = $1;
                         while (aux->next != NULL) {
-                            aux = aux->next; 
+                            aux = aux->next;
                         }
                         aux->next = p;
                         $$ = $1;
@@ -139,20 +139,20 @@ ListaParametrosCont:
                    ;
 
 Bloco:
-     LEFT_BRACE ListaDeclVar ListaComando RIGHT_BRACE { 
-        $$ = ast_block($2, $3, yylineno); 
+     LEFT_BRACE ListaDeclVar ListaComando RIGHT_BRACE {
+        $$ = ast_block($2, $3, yylineno);
     }
      ;
 
 ListaDeclVar:
             /* vazio */ { $$ = NULL; }
-            | DeclFuncVar Tipo IDENTIFIER DeclVar SEMICOLON { 
+            | ListaDeclVar Tipo IDENTIFIER DeclVar SEMICOLON {
                 var_decl_t *v = ast_decl_var($2, $3, yylineno);
                 var_decl_t *rest = $4;
                 while (rest != NULL) {
                     rest->type = $2;
                     rest = rest->next;
-                } 
+                }
                 v->next = $4;
 
                 if ($1 != NULL) {
@@ -175,7 +175,7 @@ Tipo:
 
 ListaComando:
             Comando { $$ = $1; }
-            | ListaComando Comando { 
+            | ListaComando Comando {
                 ast_append_cmd($1, $2);
                 $$ = $1;
              }
@@ -183,20 +183,20 @@ ListaComando:
 
 Comando:
        SEMICOLON { $$ = NULL; }
-       | Expr SEMICOLON { $$ = ast_cmd_expr($1, yylineno); }
+       | Expr SEMICOLON { $$ = ast_cmd_assign(NULL, $1, yylineno); }
        | RETORNE Expr SEMICOLON { $$ = ast_cmd_ret($2, yylineno); }
        | LEIA IDENTIFIER SEMICOLON { $$ = ast_cmd_leia($2, yylineno); }
        | ESCREVA Expr SEMICOLON    { $$ = ast_cmd_escreva($2, yylineno); }
-       | ESCREVA STRING SEMICOLON  { 
+       | ESCREVA STRING SEMICOLON  {
             expr_t *s = ast_expr_literal_string($2, yylineno);
-            $$ = ast_cmd_escreva($2, yylineno); 
+            $$ = ast_cmd_escreva(s, yylineno);
         }
        | NOVALINHA SEMICOLON {
             expr_t *nl = ast_expr_literal_string("\n", yylineno);
             $$ = ast_cmd_escreva(nl, yylineno);
        }
-       | SE LEFT_PAREN Expr RIGHT_PAREN ENTAO Comando { $$ = ast_cmd_if($3, $6, yylineno); }
-       | SE LEFT_PAREN Expr RIGHT_PAREN ENTAO Comando SENAO Comando { $$ = ast_cmd_if_else($3, $6, $8, yylineno); }
+       | SE LEFT_PAREN Expr RIGHT_PAREN ENTAO Comando { $$ = ast_cmd_if($3, $6, NULL, yylineno); }
+       | SE LEFT_PAREN Expr RIGHT_PAREN ENTAO Comando SENAO Comando { $$ = ast_cmd_if($3, $6, $8, yylineno); }
        | ENQUANTO LEFT_PAREN Expr RIGHT_PAREN EXECUTE Comando { $$ = ast_cmd_while($3, $6, yylineno); }
        | Bloco { $$ = ast_cmd_block($1, yylineno); }
        ;
@@ -243,10 +243,10 @@ MulExpr:
        ;
 
 UnExpr:
-      MINUS PrimExpr { 
+      MINUS PrimExpr {
              $$ = ast_expr_binary(EXPR_SUB, ast_expr_literal_int(0, yylineno), $2, yylineno);
         }
-      | BANG PrimExpr { 
+      | BANG PrimExpr {
             $$ = ast_expr_call("!", $2, yylineno);
        }
       | PrimExpr { $$ = $1; }
@@ -263,13 +263,13 @@ PrimExpr:
 
 ListExpr:
         Expr { $$ = $1; }
-        | ListExpr COMMA Expr { 
+        | ListExpr COMMA Expr {
             expr_t *aux = $1;
             while (aux->next != NULL) {
                 aux = aux->next;
             }
             aux->next = $3;
-            $$ = $1;          
+            $$ = $1;
          }
         ;
 %%

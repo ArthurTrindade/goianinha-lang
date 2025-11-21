@@ -74,7 +74,7 @@ DIGIT   [0-9]+
     int token = check_keyword(yytext);
     if (token == IDENTIFIER) {
         yylval.s_val = strdup(yytext);
-        if (!yyval.s_val) {
+        if (!yylval.s_val) {
             printf("Out of memory\n");
             exit(1);
         }

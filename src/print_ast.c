@@ -1,253 +1,216 @@
 #include <stdio.h>
-
 #include "../include/ast.h"
 #include "../include/print_ast.h"
 
-const char *enum_to_string(enum_string_map_t *map, int value) {
-  for (int i = 0; map[i].name != NULL; i++) {
-    if (map[i].value == value) {
-      return map[i].name;
+/* Helper para imprimir tipos de dados */
+const char *get_type_name(types_t t) {
+    switch (t) {
+        case T_INT: return "int";
+        case T_CAR: return "car";
+        case T_VOID: return "void";
+        default: return "unknown";
     }
-  }
-  return "UNKNOWN_ENUM";
+}
+
+/* Helper para imprimir operadores binários */
+const char *get_op_symbol(expr_e kind) {
+    switch (kind) {
+        case EXPR_ADD: return "+";
+        case EXPR_SUB: return "-";
+        case EXPR_MUL: return "*";
+        case EXPR_DIV: return "/";
+        case EXPR_AND: return "&&";
+        case EXPR_OR:  return "||";
+        case EXPR_EQUAL: return "==";
+        case EXPR_DIFF:  return "!=";
+        case EXPR_LESS:  return "<";
+        case EXPR_GREATER: return ">";
+        case EXPR_LESS_EQUAL: return "<=";
+        case EXPR_GREATER_EQUAL: return ">=";
+        default: return "?";
+    }
 }
 
 void print_expr(expr_t *expr) {
-  if (!expr)
-    return;
+    if (!expr) return;
 
-  switch (expr->kind) {
-  case EXPR_INT:
-    printf("Integer: %d\n", expr->integer_literal);
-    break;
-  case EXPR_CHAR:
-    printf("Char: %c\n", *expr->char_literal);
-    break;
-  case EXPR_ID:
-    printf("ID: %s\n", expr->id);
-    print_expr(expr->left);
-    break;
-  case EXPR_ADD:
-    printf("Expr: (\n");
-    print_expr(expr->left);
-    printf(" + ");
-    print_expr(expr->right);
-    printf(")\n");
-    break;
-  case EXPR_SUB:
-    printf("Expr: (\n");
-    print_expr(expr->left);
-    printf(" - ");
-    print_expr(expr->right);
-    printf(")\n");
-    break;
-  case EXPR_MUL:
-    printf("Expr: (\n");
-    print_expr(expr->left);
-    printf(" * ");
-    print_expr(expr->right);
-    printf(")\n");
-    break;
-  case EXPR_DIV:
-    printf("Expr: (\n");
-    print_expr(expr->left);
-    printf(" / ");
-    print_expr(expr->right);
-    printf(")\n");
-    break;
-  case EXPR_EQUAL:
-    printf("Expr: (\n");
-    print_expr(expr->left);
-    printf(" == ");
-    print_expr(expr->right);
-    printf(")\n");
-    break;
-  case EXPR_ASSIGN:
-    printf("Expr: (\n");
-    printf("%s\n", expr->id);
-    printf(" = ");
-    print_expr(expr->left);
-    printf(")\n");
-    break;
+    switch (expr->kind) {
+        case EXPR_LIT_INT:
+            printf("%d", expr->data.i_val);
+            break;
 
-  case EXPR_GREATER:
-    printf("Expr: (\n");
-    print_expr(expr->left);
-    printf(" > ");
-    print_expr(expr->right);
-    printf(")\n");
-    break;
-  case EXPR_GREATER_EQUAL:
-    printf("Expr: (\n");
-    print_expr(expr->left);
-    printf(" >= ");
-    print_expr(expr->right);
-    printf(")\n");
-    break;
+        case EXPR_LIT_STRING:
+            /* Pode ser uma string "abc" ou um identificador "variavel_x" */
+            printf("%s", expr->data.s_val);
+            break;
 
-  case EXPR_LESS:
-    printf("Expr: (\n");
-    print_expr(expr->left);
-    printf(" == ");
-    print_expr(expr->right);
-    printf(")\n");
-    break;
+        case EXPR_CALL:
+            printf("%s(", expr->data.call.id);
+            expr_t *arg = expr->data.call.args;
+            while (arg) {
+                print_expr(arg);
+                if (arg->next) printf(", ");
+                arg = arg->next;
+            }
+            printf(")");
+            break;
 
-  case EXPR_LESS_EQUAL:
-    printf("Expr: (\n");
-    print_expr(expr->left);
-    printf(" == ");
-    print_expr(expr->right);
-    printf(")\n");
-    break;
-  default:
-    /* printf("Expr tipo %s não tratado\n", enum_to_string(expr_map,
-     * expr->kind)); */
-    break;
-  }
+        /* Operações Binárias Agrupadas */
+        case EXPR_ADD: case EXPR_SUB: case EXPR_MUL: case EXPR_DIV:
+        case EXPR_AND: case EXPR_OR:  case EXPR_EQUAL: case EXPR_DIFF:
+        case EXPR_LESS: case EXPR_GREATER:
+        case EXPR_LESS_EQUAL: case EXPR_GREATER_EQUAL:
+            printf("(");
+            print_expr(expr->data.bin_op.left);
+            printf(" %s ", get_op_symbol(expr->kind));
+            print_expr(expr->data.bin_op.right);
+            printf(")");
+            break;
+
+        /* Operações Unárias */
+        case EXPR_NOT: /* Exemplo se adicionarmos ! */
+             printf("!");
+             print_expr(expr->data.call.args);
+             break;
+
+        default:
+            printf("Expr?");
+    }
 }
 
+/* Declaração antecipada necessária para recursão mútua */
+void print_block(block_t *block);
+
 void print_cmd(cmd_t *cmd) {
-  if (!cmd)
-    return;
-  switch (cmd->kind) {
-  case CMD_EXPR:
-    printf("linha: %d\n", cmd->line);
-    print_expr(cmd->expr);
-    break;
-  case CMD_LEIA:
-    printf("linha: %d\n", cmd->line);
-    printf("Leia variável: %s\n", cmd->id);
-    break;
-  case CMD_ESCREVA:
-    printf("linha: %d\n", cmd->line);
-    printf("Escreva expressão:\n");
-    print_expr(cmd->expr);
-    break;
-  case CMD_IF:
-    printf("linha: %d\n", cmd->line);
-    printf("If:\nCondição:\n");
-    print_expr(cmd->expr);
-    printf("Bloco:\n");
-    print_cmd(cmd->body);
-    break;
-  case CMD_IF_ELSE:
-    printf("linha: %d\n", cmd->line);
-    printf("If-Else:\nCondição:\n");
-    print_expr(cmd->expr);
-    printf("Bloco then:\n");
-    print_cmd(cmd->body);
-    printf("Bloco else:\n");
-    print_cmd(cmd->else_body);
-    break;
-  case CMD_WHILE:
-    printf("linha: %d\n", cmd->line);
-    printf("While:\nCondição:\n");
-    print_expr(cmd->expr);
-    printf("Corpo:\n");
-    print_cmd(cmd->body);
-    break;
-  case CMD_RETORNE:
-    printf("linha: %d\n", cmd->line);
-    printf("Return expressão:\n");
-    print_expr(cmd->expr);
-    break;
-  case CMD_BLOCK:
-    printf("linha: %d\n", cmd->line);
-    printf("Bloco de comandos:\n");
-    print_block(cmd->blk);
-    break;
-  case CMD_STRING:
-    printf("linha: %d\n", cmd->line);
-    printf("Escreva String: %s\n", cmd->id);
-  default:
-    /* printf("Comando tipo %s não tratado\n", */
-    /* enum_to_string(stmt_map, cmd->kind)); */
-    break;
-  }
+    if (!cmd) return;
+
+    printf("Linha %d: ", cmd->line);
+
+    switch (cmd->kind) {
+        case CMD_ASSIGN:
+            printf("Atribuicao: %s = ", cmd->data.io_expr.expr->data.s_val);
+            print_expr(cmd->data.io_expr.expr);
+            printf("\n");
+            break;
+
+        case CMD_IF:
+            printf("Se: ");
+            print_expr(cmd->data.control.cond);
+            printf("\n  Entao:\n");
+            print_cmd(cmd->data.control.body); // Imprime o bloco ou comando único
+
+            if (cmd->data.control.else_body) {
+                printf("  Senao:\n");
+                print_cmd(cmd->data.control.else_body);
+            }
+            break;
+
+        case CMD_WHILE:
+            printf("Enquanto: ");
+            print_expr(cmd->data.control.cond);
+            printf("\n  Faca:\n");
+            print_cmd(cmd->data.control.body);
+            break;
+
+        case CMD_RETURN:
+            printf("Retorne: ");
+            print_expr(cmd->data.io_expr.expr);
+            printf("\n");
+            break;
+
+        case CMD_LEIA:
+            printf("Leia: %s\n", cmd->data.io_read.id);
+            break;
+
+        case CMD_ESCREVA:
+            printf("Escreva: ");
+            print_expr(cmd->data.io_expr.expr);
+            printf("\n");
+            break;
+
+        case CMD_BLOCK:
+            printf("--- Inicio Bloco ---\n");
+            print_block(cmd->data.block);
+            printf("--- Fim Bloco ---\n");
+            break;
+
+        case CMD_EXPR:
+             printf("Expr Isolada: ");
+             print_expr(cmd->data.io_expr.expr); /* Reutilizando io_expr para expr geral */
+             printf("\n");
+             break;
+
+        default:
+            printf("Comando desconhecido\n");
+    }
+}
+
+void print_var_decl(var_decl_t *vars) {
+    while (vars) {
+        printf("  [VAR] %s %s (Linha %d)\n",
+               get_type_name(vars->type),
+               vars->id,
+               vars->line);
+        vars = vars->next;
+    }
 }
 
 void print_block(block_t *block) {
-  if (!block)
-    return;
+    if (!block) return;
 
-  printf("Variáveis locais:\n");
-  decl_varlist_t *var_list = block->var_list;
-  while (var_list) {
-
-    if (var_list->var) {
-      printf("- %s, ", var_list->id);
-      print_decl_list(var_list->var);
-      printf("Linha: %d\n", var_list->var->line);
+    /* 1. Imprimir Variáveis Locais */
+    if (block->vars) {
+        printf("  Declaracoes Locais:\n");
+        print_var_decl(block->vars);
     }
 
-    if (var_list->var == NULL) {
-      printf("- %s\n", var_list->id);
+    /* 2. Imprimir Lista de Comandos */
+    cmd_t *curr_cmd = block->cmds;
+    while (curr_cmd) {
+        print_cmd(curr_cmd);
+        curr_cmd = curr_cmd->next; /* Lista intrusiva: o comando sabe o próximo */
     }
-
-    var_list = var_list->next;
-  }
-
-  printf("Comandos:\n");
-  cmd_list_t *cmds = block->cmd_list;
-  while (cmds) {
-    print_cmd(cmds->cmd);
-    cmds = cmds->next;
-  }
 }
 
-void print_params(param_listcount_t *params) {
-
-  if (params == NULL)
-    return;
-
-  param_listcount_t *paramlist = params;
-  printf("%s, ", paramlist->id);
-  print_params(params->next);
+void print_params(param_t *params) {
+    printf("(");
+    while (params) {
+        printf("%s %s", get_type_name(params->type), params->id);
+        if (params->next) printf(", ");
+        params = params->next;
+    }
+    printf(")");
 }
 
-void print_decl_list(decl_var_t *declv) {
-  if (declv == NULL)
-    return;
-
-  printf("%s, ", declv->id);
-
-  print_decl_list(declv->next);
-}
-
-void print_program(program_t *program) {
-  if (!program)
-    return;
-
-  printf("=== Programa ===\n");
-
-  decl_funcvar_t *decl = program->funcvar;
-  while (decl) {
-
-    if (decl->decl_var == NULL && decl->decl_func == NULL) {
-      printf("Decl var global: %s, Linha: %d\n", decl->id, decl->line);
+void print_program(program_t *prog) {
+    if (!prog) {
+        printf("Programa Vazio (NULL)\n");
+        return;
     }
 
-    if (decl->decl_var) {
-      printf("Decl vars global: %s, ", decl->id);
-      print_decl_list(decl->decl_var);
-      printf("Linha: %d\n", decl->decl_var->line);
-      printf("\n");
+    printf("=== AST START ===\n");
+
+    /* 1. Declarações Globais */
+    global_decl_t *glob = prog->globals;
+    while (glob) {
+        if (glob->kind == G_VAR) {
+            printf("[GLOBAL VAR] ");
+            print_var_decl(glob->decl.var);
+        } else if (glob->kind == G_FUNC) {
+            func_decl_t *f = glob->decl.func;
+            printf("\n[FUNCAO] %s %s", get_type_name(f->ret_type), f->id);
+            print_params(f->params);
+            printf("\n");
+            print_block(f->block);
+        }
+        glob = glob->next;
     }
 
-    if (decl->decl_func) {
-      printf("Decl função: %s\n", decl->id);
-      printf("Parâmetros: ");
-      print_params(decl->decl_func->params->param_count);
-      printf("Linha: %d\n\n", decl->decl_func->params->line);
-      print_block(decl->decl_func->block);
+    /* 2. Bloco Principal */
+    if (prog->main_block) {
+        printf("\n=== MAIN BLOCK ===\n");
+        print_block(prog->main_block);
     }
 
-    decl = decl->next;
-  }
-
-  if (program->prog) {
-    printf("Bloco principal do programa:\n");
-    print_block(program->prog->block);
-  }
+    printf("=== AST END ===\n");
 }

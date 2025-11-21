@@ -28,8 +28,9 @@ SRC_FILES = $(SRC_DIR)/list.c \
             $(SRC_DIR)/hashmap.c \
 			$(SRC_DIR)/print_ast.c \
 			$(SRC_DIR)/main.c \
-			$(SRC_DIR)/semantic.c
-			
+			$(SRC_DIR)/semantic.c \
+
+
 
 # Generate object file paths from source files
 OBJ_FILES = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRC_FILES))

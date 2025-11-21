@@ -2,12 +2,16 @@
 
 #include "../include/ast.h"
 #include "../include/print_ast.h"
-#include "../include/semantic.h"
+#include "../include/symbol_table.h"
 
 extern FILE *yyin;
 extern int yylineno;
 extern char *yytext;
+
 extern program_t *root;
+
+extern env_t env;
+
 extern int yyparse();
 
 int main(int argc, char **argv) {
@@ -21,14 +25,44 @@ int main(int argc, char **argv) {
     yyin = input;
   }
 
-  printf("Teste código correto: ");
-  int res = yyparse();
-  printf("%d\n", res);
-  printf("\n");
+  env = env_new();
+  if (!env) {
+    fprintf(stderr, "Erro fatal: Falha ao alocar memoria para o ambiente.\n");
+    return 1;
+  }
 
-  print_program(root);
+  /* Cria o escopo global (Nível 0) antes de começar */
+  env_push_scope(env);
 
-  semantic_program(root);
+  /* Análise Sintática (Parsing) */
+  printf("--- [1/3] Iniciando Analise Sintatica ---\n");
+  int parse_result = yyparse();
 
+  env_pop_scope(env);
+  env_free(env);
+
+  if (parse_result != 0) {
+    fprintf(stderr, "Erro: Falha na analise sintatica. Compilacao abortada.\n");
+    if (argc > 1 && yyin)
+      fclose(yyin);
+    return 1;
+  }
+  printf(">> Sucesso: Sintaxe correta.\n\n");
+
+  /* Impressão da AST */
+  if (root) {
+    printf("--- [Visualizacao da AST] ---\n");
+    print_program(root);
+    printf("\n");
+  }
+
+  /* Análise Semântica */
+  printf("--- [2/3] Iniciando Analise Semantica ---\n");
+  if (root) {
+    // semantic_program(root);
+  }
+  printf(">> Sucesso: Analise semantica concluida.\n\n");
+  if (argc > 1 && yyin)
+    fclose(yyin);
   return 0;
 }

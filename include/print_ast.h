@@ -1,25 +1,13 @@
-#ifndef AST_WALKER_H
-#define AST_WALKER_H
+#ifndef PRINT_AST_H
+#define PRINT_AST_H
 
-#include "../include/ast.h"
+#include "ast.h"
 
-typedef struct {
-  int value;
-  const char *name;
-} enum_string_map_t;
+/* Ponto de entrada principal para imprimir a árvore completa */
+void print_program(program_t *prog);
 
-const char *enum_to_string(enum_string_map_t *map, int value);
-
-void print_program(program_t *program);
-
-void print_block(block_t *block);
-
-void print_cmd(cmd_t *cmd);
-
+/* Funções auxiliares (caso queira debugar partes específicas) */
 void print_expr(expr_t *expr);
-
-void print_decl_list(decl_var_t *declv);
-
-void print_params(param_listcount_t *params);
+void print_block(block_t *block);
 
 #endif

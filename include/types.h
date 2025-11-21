@@ -38,6 +38,7 @@ typedef enum {
   EXPR_DIV, /* / */
 
   /* Operações Lógicas e Relacionais */
+  EXPR_ASSIGN,
   EXPR_AND,          /* E */
   EXPR_OR,           /* OU */
   EXPR_NOT,          /* ! */

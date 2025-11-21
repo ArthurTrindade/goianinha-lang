@@ -1,184 +1,149 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "../include/ast.h"
 #include "../include/symbol_table.h"
-#include "../include/types.h"
 
-env_t env_new() {
-  env_t e = (env_t)malloc(sizeof(list_t));
-  list_init(e, (void *)hashmap_free);
-  return e;
-}
-
-void env_free(env_t e) { list_destroy(e); }
-
-int env_add(env_t e, scope_t h) { return list_insert_begin(e, h); }
-
-int env_delete(env_t e) { return list_remove_begin(e); }
-
-list_symbol_t list_symbol_new() {
-  list_symbol_t l = (list_symbol_t)malloc(sizeof(list_t));
-  list_init(l, (void *)symbol_free);
-  return l;
-}
-
-void list_symbol_free(list_symbol_t l) { list_destroy(l); }
-
-int list_symbol_add(list_symbol_t l, symbol_t *s) {
-  return list_insert_begin(l, s);
-}
-
-scope_t symboltable_new() {
-  return hashmap_new(sizeof(symbol_t), 0, 0, 0, symbol_hash, symbol_compare,
-                     NULL, NULL);
-}
-
-void symboltable_set(scope_t h, symbol_t *s) { hashmap_set(h, s); }
-
-symbol_t *symboltable_get(scope_t h, const void *key) {
-  return (symbol_t *)hashmap_get(h, key);
-}
-
-symbol_t *symbol_new(char *lexeme, types_t token) {
-  symbol_t *s = (symbol_t *)malloc(sizeof(symbol_t));
-  if (s != NULL) {
-    s->lexeme = lexeme;
-    s->symbol_type = token;
-  }
-  return s;
-}
-
-void symbol_free(symbol_t *s) { free(s); }
-
+/* Compara dois símbolos pelo ID (Lexema) */
 int symbol_compare(const void *s1, const void *s2, void *udata) {
-  symbol_t *us1 = (symbol_t *)s1;
-  symbol_t *us2 = (symbol_t *)s2;
-  return strcmp(us1->lexeme, us2->lexeme);
+  const symbol_t *sym1 = (const symbol_t *)s1;
+  const symbol_t *sym2 = (const symbol_t *)s2;
+  return strcmp(sym1->id, sym2->id);
 }
 
+/* Gera o Hash baseado no ID do símbolo */
 uint64_t symbol_hash(const void *item, uint64_t seed0, uint64_t seed1) {
-  const symbol_t *symbol = item;
-  return hashmap_sip(symbol->lexeme, strlen(symbol->lexeme), seed0, seed1);
+  const symbol_t *sym = (const symbol_t *)item;
+  return hashmap_sip(sym->id, strlen(sym->id), seed0, seed1);
 }
 
-symbol_t *symbol_search(env_t env, char *lexeme) {
-  symbol_t *s = NULL;
-  symbol_t s1 = {.lexeme = lexeme};
-  node_t *aux;
+/* Libera a memória de um único símbolo */
+void symbol_free(void *item) {
+  symbol_t *s = (symbol_t *)item;
+  if (!s)
+    return;
 
-  for (aux = list_head(env); aux != NULL; aux = aux->next) {
-    s = symboltable_get(list_data(aux), &s1.lexeme);
-    if (s != NULL)
-      return s;
+  if (s->id)
+    free(s->id);
+
+  if (s->kind == SYM_FUNC && s->info.func.params) {
+    list_destroy(s->info.func.params);
   }
-  return s;
+
+  free(s);
 }
 
-symbol_t *symbol_var(char *l, types_t dt, int pos, int line) {
-  symbol_t *s = (symbol_t *)malloc(sizeof(symbol_t));
+env_t env_new(void) {
+  env_t env = (env_t)malloc(sizeof(list_t));
+  list_init(env, (void *)hashmap_free);
+  return env;
+}
 
+void env_free(env_t env) {
+  if (env) {
+    list_destroy(env);
+    free(env);
+  }
+}
+
+void env_push_scope(env_t env) {
+  struct hashmap *scope = hashmap_new(sizeof(symbol_t), 0, 0, 0, symbol_hash,
+                                      symbol_compare, symbol_free, NULL);
+
+  list_insert_begin(env, scope);
+}
+
+void env_pop_scope(env_t env) { list_remove_begin(env); }
+
+symbol_t *symbol_new_var(char *id, symbol_kind_t kind, types_t type, int offset,
+                         int line) {
+  symbol_t *s = (symbol_t *)malloc(sizeof(symbol_t));
   if (s) {
-    s->lexeme = l;
-    s->symbol_type = T_VAR;
-    s->data_type = dt;
-    s->pos = pos;
+    s->id = id ? strdup(id) : NULL;
+    s->kind = kind;
+    s->data_type = type;
     s->line = line;
-    s->params = NULL;
-  }
 
+    s->info.var.offset = offset;
+    s->info.var.scope_level = 0;
+  }
   return s;
 }
 
-symbol_t *symbol_param(char *l, types_t dt, int pos, int line) {
+symbol_t *symbol_new_func(char *id, types_t return_type, list_t *params,
+                          int line) {
   symbol_t *s = (symbol_t *)malloc(sizeof(symbol_t));
-
   if (s) {
-    s->lexeme = l;
-    s->symbol_type = T_PARAM;
-    s->data_type = dt;
-    s->pos = pos;
-    s->line = line;
-    s->params = NULL;
-  }
-
-  return s;
-}
-
-symbol_t *symbol_function(char *l, types_t return_type, int num_param,
-                          list_symbol_t list_symbol, int line) {
-
-  symbol_t *s = (symbol_t *)malloc(sizeof(symbol_t));
-
-  if (s) {
-    s->lexeme = l;
-    s->symbol_type = T_FUNCTION;
+    s->id = id ? strdup(id) : NULL;
+    s->kind = SYM_FUNC;
     s->data_type = return_type;
-    s->pos = num_param;
-    s->params = list_symbol;
     s->line = line;
+
+    s->info.func.params = params;
+    s->info.func.num_params = params ? params->size : 0;
+  }
+  return s;
+}
+
+int symbol_add(env_t env, symbol_t *s) {
+  node_t *head = list_head(env);
+  if (!head)
+    return 0; // Erro: sem escopo
+
+  struct hashmap *scope = (struct hashmap *)list_data(head);
+
+  if (hashmap_get(scope, s) != NULL) {
+    return 0;
   }
 
-  return s;
+  hashmap_set(scope, s);
+  return 1;
+}
+
+symbol_t *symbol_search(env_t env, const char *key) {
+  symbol_t search_key;
+  search_key.id = (char *)key;
+
+  node_t *current_node = list_head(env);
+  while (current_node != NULL) {
+    struct hashmap *scope = (struct hashmap *)list_data(current_node);
+    symbol_t *found = (symbol_t *)hashmap_get(scope, &search_key);
+    if (found) {
+      return found;
+    }
+    current_node = current_node->next;
+  }
+  return NULL;
+}
+
+symbol_t *symbol_search_current(env_t env, const char *key) {
+  node_t *head = list_head(env);
+  if (!head)
+    return NULL;
+
+  symbol_t search_key;
+  search_key.id = (char *)key;
+
+  struct hashmap *scope = (struct hashmap *)list_data(head);
+  return (symbol_t *)hashmap_get(scope, &search_key);
 }
 
 void symbol_print(symbol_t *s) {
-  if (s == NULL) {
-    printf("Símbolo nulo\n");
+  if (!s)
     return;
+
+  const char *kind_str = (s->kind == SYM_FUNC)    ? "FUNC"
+                         : (s->kind == SYM_PARAM) ? "PARAM"
+                                                  : "VAR";
+
+  printf("Symbol: %s | Kind: %s | Type: %d | Line: %d", s->id, kind_str,
+         s->data_type, s->line);
+
+  if (s->kind == SYM_VAR || s->kind == SYM_PARAM) {
+    printf(" | Offset: %d", s->info.var.offset);
+  } else {
+    printf(" | Params: %d", s->info.func.num_params);
   }
-  printf("\nLexeme: %s, Type: %d\n", s->lexeme, s->symbol_type);
-  printf("Linha: %d, Pos: %d\n", s->line, s->pos);
-  printf("Symbol type: %d\n", s->symbol_type);
+  printf("\n");
 }
-
-void decl_resolve(env_t e, decl_funcvar_t *decl) {
-  if (decl)
-    return;
-
-  types_t type = e->size > 1 ? T_LOCAL : T_GLOBAL;
-}
-
-/**/
-/* int main() { */
-/**/
-/*   env_t env = env_new(); */
-/**/
-/*   scope_t scope1 = symboltable_new(); */
-/*   scope_t scope2 = symboltable_new(); */
-/*   env_add(env, scope1); */
-/*   env_add(env, scope2); */
-/**/
-/*   symbol_t s1 = {.lexeme = "y", .symbol_type = IDENTIFIER}; */
-/*   symbol_t s2 = {.lexeme = "z", .symbol_type = IDENTIFIER}; */
-/*   symbol_t s3 = {.lexeme = "soma", .symbol_type = NUMBER}; */
-/*   symbol_t s4 = {.lexeme = "a", .symbol_type = STRING}; */
-/*   symboltable_set(scope1, */
-/*                   &(symbol_t){.lexeme = "x", .symbol_type = IDENTIFIER}); */
-/*   symboltable_set(scope1, &s1); */
-/*   symboltable_set(scope1, &s2); */
-/**/
-/*   symboltable_set(scope2, &s2); */
-/*   symboltable_set(scope2, &s3); */
-/*   symboltable_set(scope2, &s4); */
-/**/
-/*   symbol_t *symbol = NULL; */
-/*   symbol_t *symbol2 = NULL; */
-/**/
-/*   printf("Scope 1\n"); */
-/*   symbol2 = symbol_search(env, "z"); */
-/*   symbol_print(symbol2); */
-/**/
-/*   printf("Scope 2\n"); */
-/*   symbol2 = symbol_search(env, "a"); */
-/*   symbol_print(symbol2); */
-/**/
-/*   symbol2 = symbol_search(env, "x"); */
-/*   symbol_print(symbol2); */
-/**/
-/*   symbol2 = symbol_search(env, "soma"); */
-/*   symbol_print(symbol2); */
-/**/
-/*   env_free(env); */
-/* } */
